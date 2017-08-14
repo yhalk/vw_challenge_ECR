@@ -114,7 +114,7 @@ model.fit(X, Y,
 
 
 
-test = pd.read_csv('GT-final_test.csv', sep=';')
+test = pd.read_csv('./GT-final_test.csv', sep=';')
 
 # Load test dataset
 X_test = []
@@ -134,7 +134,7 @@ acc = np.sum(y_pred == y_test) / np.size(y_pred)
 print("Test accuracy = {}".format(acc))
 
 
-"""
+
 
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.cross_validation import train_test_split
@@ -159,14 +159,14 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 # Train again
-epochs = 30
+epochs = 5
 model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size),
                     steps_per_epoch=X_train.shape[0],
                     epochs=epochs,
                     validation_data=(X_val, Y_val),
                     callbacks=[LearningRateScheduler(lr_schedule),
-                               ModelCheckpoint('model.h5', save_best_only=True)]
+                               ModelCheckpoint('model_aug.h5', save_best_only=True)]
                     )
 
 
-"""
+
