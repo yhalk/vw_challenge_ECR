@@ -1,8 +1,7 @@
 import paho.mqtt.client as mqtt
 import config
 import ev3dev.ev3 as ev3
-from lego import InfraredSensor
-from event_loop import EventLoop
+from lego_new import InfraredSensor
 
 # ev3dev has a python interface for sensors.
 # The sensor classes have properties which are updated under the hood.
@@ -12,8 +11,7 @@ from event_loop import EventLoop
 
 
 ir = InfraredSensor()
-infrared_sensor = ev3.InfraredSensor(config.INFRARED_SENSOR_PORT)
-sensors = [infrared_sensor,ir]
+sensors = [ir]
 
 # Make dict where key is sensor instance and value
 # is a list of all properties of this sensor
