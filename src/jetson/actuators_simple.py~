@@ -1,0 +1,34 @@
+import paho.mqtt.client as mqtt
+import config
+import ev3dev.ev3 as ev3
+
+"""
+Motors A,B are motion motors
+Motor C is lifting motor
+Motor D is clamp motor
+
+"""
+"""
+#Set up actuators to receive values for their properties
+ev3_actuators = [
+    ev3.LargeMotor(config.LARGE_MOTOR_A),
+    ev3.LargeMotor(config.LARGE_MOTOR_B), 
+    ev3.LargeMotor(config.LARGE_MOTOR_C), 
+    ev3.MediumMotor(config.MEDIUM_MOTOR), 
+]
+
+actuators_and_names_dict = {'LargeMotor(outA)':ev3_actuators[0],'LargeMotor(outB)':ev3_actuators[1],'LargeMotor(outC)':ev3_actuators[2],'MediumMotor(outD)':ev3_actuators[3]}
+"""
+
+def addActuatorDevices(client):
+#Use same names as in actuators_and_names_dict
+    
+    #Motors
+    client.publish_cmd(m, AddDeviceMessage('LargeMotor(outA)', "ev3.LargeMotor()"))
+    client.publish_cmd(m, SetAttrMessage('LargeMotor(outA)', "address","outA"))
+    client.publish_cmd(m, AddDeviceMessage('LargeMotor(outB)', "ev3.LargeMotor()"))
+    client.publish_cmd(m, SetAttrMessage('LargeMotor(outB)', "address","outB"))
+    client.publish_cmd(m, AddDeviceMessage('LargeMotor(outC)', "ev3.LargeMotor()"))
+    client.publish_cmd(m, SetAttrMessage('LargeMotor(outC)', "address","outC"))
+    client.publish_cmd(m, AddDeviceMessage('MediumMotor(outD)', "ev3.MediumMotor()"))
+    client.publish_cmd(m, SetAttrMessage('MediumMotor(outD)', "address","outD"))

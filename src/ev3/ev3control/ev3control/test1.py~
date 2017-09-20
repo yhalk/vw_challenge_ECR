@@ -1,0 +1,7 @@
+import slave
+
+
+if __name__ == '__main__':
+    from messages import *
+    m = run_slave('localhost')
+    publish_cmd(m, ShowAttrMessage("test", "max_speed"))
