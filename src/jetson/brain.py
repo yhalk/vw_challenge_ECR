@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-
+import os
 import cv2
 import csv
 import time
@@ -11,6 +11,9 @@ from ir_to_control import ir_to_control,data_collection_and_camera
 import IR_control as remoteControl ##Needed if included in sensors_simple??
 from actuators_simple import addActuatorDevices
 import sensors_simple   
+from data_collection import DataCollector
+#import frcnn
+import datetime 
 
 def on_log(client, userdata, level, buf):
    print("Jetson log: ",buf)
@@ -21,9 +24,9 @@ client = mqtt.Client()
 client.connect(config.BROKER_IP, config.BROKER_PORT, keepalive=60)
 client.on_message = partial(slave.process_message, sensors)
 client.subscribe("sensors",qos=2)            
+client.subscribe("data_collect",qos=2)
 topic="actuators"
 client.on_log = on_log
-
 
 
 #Add actuators for which we publish values to the EV3 list of receiving actuator values
@@ -35,6 +38,7 @@ print("Client is set up, will start listening now!")
 while (sensors=={}):
    client.loop_read()
 
+print(sensors)
 
 client.loop_start()
 
@@ -54,17 +58,31 @@ motA,motB,gripC,gripD = -1,-1,-1,-1
 channel_prev = sensors["IR_control"].get_channel()
 cmd_prev = sensors["IR_control"].get_cmd()
 
+#predictor = frcnn.ObjectPredictor()
+
 
 while(1):
 
     channel = sensors["IR_control"].get_channel()
     cmd = sensors["IR_control"].get_cmd()
     cam_data = sensors_simple.camera.read()
-    print(channel,cmd)
     
     #Decode IR input and issue command
     if (int(channel)==2):
           print("data collect")
+          print(sensors["data_collector"].get_data())
+          img_name = "./image_rec"+str(data_counter)+".jpg"
+          data_counter = data_counter + 1
+          a = datetime.datetime.now()
+          #predictor.detect_known_objects(cam_data['onBoardCamera'])
+          #print(predictor.ret_detected_objects)
+          b = datetime.datetime.now()
+          delta = b - a
+          print("identifying objects in 1 took:", int(delta.total_seconds() * 1000)) # milliseconds
+          
+          cv2.imshow(img_rec)
+          cv2.waitKey(20)
+          
           #record,fileID,path,run,writer = data_collection_and_camera(int(cmd),run,sensors["IR_control"],path,fileID)
     elif (int(channel)==0 or int(channel)==1 or int(channel)==3):
           motA,motB,gripC,gripD = ir_to_control(client,topic,sensors)
@@ -86,10 +104,11 @@ while(1):
        #save sensor + actuators values
        if fileID!=None:
            data_to_save = [img_name,str(motA),str(motB),str(gripC),str(gripD)]
-           writer.writerow(data_to_save)
+           #writer.writerow(data_to_save)
        else:
            print("Something went wrong with csv opening")
-       
+           pass
+
     data_counter = data_counter + 1
     time.sleep(0.2)
    

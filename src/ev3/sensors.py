@@ -5,6 +5,7 @@ import IR_control as remoteControl
 import ev3control.master as master
 from ev3control.messages import *
 import time
+from data_collection import DataCollector
 
 ir = remoteControl.InfraredSensor()
 
@@ -29,3 +30,5 @@ def addSensorDevices(client,topic):
     #Add remote controller
     master.publish_cmd(client,topic, AddDeviceMessage("IR_control", "remoteControl.InfraredSensor()"),1)
     master.publish_cmd(client,topic, SetAttrMessage("IR_control", "mode","IR-REMOTE"),1)
+    master.publish_cmd(client,"data_collect",AddDeviceMessage("data_collector","DataCollector()"),1)
+    print("added data")
