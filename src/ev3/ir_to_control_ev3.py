@@ -4,6 +4,7 @@ import ev3dev.ev3 as ev3
 from ev3control.messages import *
 import csv
 import os
+import low_level_ctrl as ctrl
 
 REMOTE_NONE = 0
 REMOTE_RED_UP = 1
@@ -18,40 +19,43 @@ REMOTE_BAECON_MODE_ON = 9
 REMOTE_RED_UP_AND_RED_DOWN = 10
 REMOTE_BLUE_UP_AND_BLUE_DOWN = 11
 
-
+    
 def motor_control(actuators,cmd): 
     speedA = 0
     speedB = 0
     print("motor_ctrl")
     if (cmd==REMOTE_RED_UP):
-        speedA = -100
-        actuators[0].run_forever(speed_sp=speedA)
-        actuators[2].run_forever(speed_sp=-speedA)
+        speedA  = -360
+        time_sp = 360
+        N = 1
+        ctrl.turn_N_steps(actuators[0],actuators[2],N=N,speed_sp=speedA,time_sp=time_sp)     
     elif (cmd==REMOTE_RED_DOWN):
-        speedA = 100
-        actuators[0].run_forever(speed_sp=speedA)
-        actuators[2].run_forever(speed_sp=-speedA)
+        speedA  = 360
+        time_sp = 360
+        N = 1
+        ctrl.turn_N_steps(actuators[0],actuators[2],N=N,speed_sp=speedA,time_sp=time_sp)
     elif (cmd==REMOTE_BLUE_UP):
-        speedB = -100
-        actuators[2].run_forever(speed_sp=speedB)
-        actuators[0].run_forever(speed_sp=-speedB)
+        speedA  = -360
+        time_sp = 360
+        N = 1
+        ctrl.turn_N_steps(actuators[2],actuators[0],N=N,speed_sp=speedA,time_sp=time_sp)     
     elif (cmd==REMOTE_BLUE_DOWN):
-        speedB = 100
-        actuators[2].run_forever(speed_sp=speedB)
-        actuators[0].run_forever(speed_sp=-speedB)
+        speedA  = 360
+        time_sp = 360
+        N = 1
+        ctrl.turn_N_steps(actuators[2],actuators[0],N=N,speed_sp=speedA,time_sp=time_sp)
     elif (cmd==REMOTE_RED_UP_AND_BLUE_UP):
-        speedA = 100
-        actuators[0].run_forever(speed_sp=speedA)
-        speedB = 100
-        actuators[2].run_forever(speed_sp=speedB)
+        speed_sp = 360
+        time_sp  = 360
+        N = 1
+        ctrl.forward_N_steps(actuators[2],actuators[0],N=N,speed_sp=speed_sp,time_sp=time_sp)
     elif (cmd==REMOTE_RED_DOWN_AND_BLUE_DOWN):
-        speedA = -100
-        actuators[0].run_forever(speed_sp=speedA)
-        speedB = -100
-        actuators[2].run_forever(speed_sp=speedB)
+        speed_sp = 360
+        time_sp  = 360
+        N = 1
+        ctrl.backward_N_steps(actuators[2],actuators[0],N=N,speed_sp=speed_sp,time_sp=time_sp)
     elif (cmd==REMOTE_BAECON_MODE_ON):
-        actuators[0].stop(stop_action='brake')
-        actuators[2].stop(stop_action='brake')
+        ctrl.stop_actuator(actuators=[actuators[0],actuators[2]],stop_action='brake')
     else:
         print("Pass motors")
         pass
@@ -63,23 +67,23 @@ def gripper_control(actuators,cmd):
     speed_grip = 0
     print("gripper")
     if (cmd==REMOTE_RED_UP):
-        speed_lift = 100
-        actuators[1].run_to_rel_pos(position_sp=70,speed_sp=speed_lift)
+        speed_lift = 250
+        position_sp = 70
+        ctrl.lift_gripper(actuator=actuators[1],position_sp=position_sp,speed_sp=speed_lift)
     elif (cmd==REMOTE_RED_DOWN):
-        speed_lift = -100
-        actuators[1].run_to_rel_pos(position_sp=-50,speed_sp=speed_lift)
+        speed_lift = 250
+        position_sp = 70
+        ctrl.lower_gripper(actuator=actuators[1],position_sp=position_sp,speed_sp=speed_lift)
     elif (cmd==REMOTE_BLUE_UP):
-        #print("counts")
-        #print(actuators[3].count_per_m())
-        #print(actuators[3].count_per_rot())
-        speed_grip = 300
-        actuators[3].run_forever(speed_sp=speed_grip)
+        position_sp = 90
+        speed_sp = 200
+        ctrl.open_gripper(actuators[3],position=position_sp,speed_sp=speed_sp)
     elif (cmd==REMOTE_BLUE_DOWN):
-        speed_grip = -300
-        actuators[3].run_forever(speed_sp=speed_grip)
+        position_sp = 90
+        speed_sp = 200
+        ctrl.close_gripper(actuators[3],position=position_sp,speed_sp=speed_sp)
     elif (cmd==REMOTE_BAECON_MODE_ON):
-        actuators[3].stop(stop_action='hold')
-        actuators[1].stop(stop_action='hold')
+        ctrl.stop_actuator(actuators=[actuators[3],actuators[1]],stop_action='brake')
     else:
         print("Pass gripper")
         pass
@@ -94,10 +98,7 @@ def emergency(actuators,cmd):
     sD = None
     print("emergency")
     if (cmd==REMOTE_BAECON_MODE_ON):
-        actuators[0].stop(stop_action='brake')
-        actuators[1].stop(stop_action='brake')
-        actuators[2].stop(stop_action='brake')
-        actuators[3].stop(stop_action='brake')
+        ctrl.stop_actuator(actuators=actuators,stop_action='brake')
         sA = 0
         sB = 0
         sC = 0
