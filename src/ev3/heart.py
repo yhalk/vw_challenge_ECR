@@ -32,10 +32,10 @@ client.on_log = on_log
 
 #client.loop_start()
 
-"""
+
 while (actuators=={}):
      client.loop_read()
-"""     
+     
 
 #Add sensors for which we publish values to the Jetson list of receiving sensor values
 #Add also data collector atm
@@ -72,7 +72,11 @@ while(1):
       else:
           print("ch3")
           _,_,_,_ = ir_ctrl.ir_to_control(actuators_l,int(channel),int(cmd))
- 
+   
+   print(getattr(camera_feedback,'distance'))
+   print(getattr(camera_feedback,'angle')) 
+   print(getattr(camera_feedback,'class_name'))
+   
    time.sleep(1)
    #Publish sensor readings  --- CHECK QUALITY OF SERVICE LEVEL FOR SENSOR VALUES
    for sensor, property_names in items_to_publish.items():
