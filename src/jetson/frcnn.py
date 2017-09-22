@@ -242,11 +242,13 @@ class ObjectPredictor:
 	
                 detected_objects = []
                 for key in bboxes:
+                        key_bbox = []
                         bbox = np.array(bboxes[key])
                         new_boxes, new_probs = roi_helpers.non_max_suppression_fast(bbox, np.array(probs[key]), overlap_thresh=0.5)
                         for jk in range(new_boxes.shape[0]):
                                 (x1, y1, x2, y2) = new_boxes[jk,:]
                                 (real_x1, real_y1, real_x2, real_y2) = self.get_real_coordinates(ratio, x1, y1, x2, y2)
+                                key_bbox.append((real_x1, real_y1, real_x2, real_y2))
 	                        #print ("object width", self.distance([real_x1,real_y1], [real_x2,real_y1]))
 	                        #print "drawing detected rect at:", (real_x1, real_y1), (real_x2, real_y2)
                                 #cv2.rectangle(img,(real_x1, real_y1), (real_x2, real_y2), (int(class_to_color[key][0]), int(class_to_color[key][1]), int(class_to_color[key][2])),5)
@@ -271,7 +273,7 @@ class ObjectPredictor:
                                 distance_between_robot_centre_and_detected_object = (51.525 * 123) / self.distance([real_x1,real_y1], [real_x2,real_y1])  #(focal_length_mm * average_real_object_height_mm * image_height_px) / float(object_height_px * sensor_height_mm)
                                 distance_between_robot_centre_and_detected_object = distance_between_robot_centre_and_detected_object * 1.5
 	
-                                detected_objects.append((key, distance_between_robot_centre_and_detected_object, angle_between_robot_centre_and_detected_object))
+                                detected_objects.append((key, key_bbox, distance_between_robot_centre_and_detected_object, angle_between_robot_centre_and_detected_object))
 	
                 #print(detected_objects)
                 #self.ret_detected_objects(detected_objects)

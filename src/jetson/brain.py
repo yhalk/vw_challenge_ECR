@@ -12,9 +12,12 @@ import IR_control as remoteControl ##Needed if included in sensors_simple??
 from actuators_simple import addActuatorDevices
 import sensors_simple   
 from data_collection import DataCollector
-#import frcnn
+import frcnn
 import datetime 
+from vision_commands import *
 
+   
+ 
 def on_log(client, userdata, level, buf):
    print("Jetson log: ",buf)
 
@@ -31,14 +34,17 @@ client.on_log = on_log
 
 #Add actuators for which we publish values to the EV3 list of receiving actuator values
 addActuatorDevices(client,topic)
+addVisualDevices(client,topic="vision")
+
+predictor = frcnn.ObjectPredictor()
 
 
 print("Client is set up, will start listening now!")
 
+"""
 while (sensors=={}):
    client.loop_read()
-
-print(sensors)
+"""
 
 client.loop_start()
 
@@ -46,6 +52,7 @@ client.loop_start()
 data_counter = 0
 #Counter for the dataset batch names
 run = 0
+"""
 #Flag for setting data recording on (1) or off (0)
 record = 0
 #Path for saving data, will be set from storing function
@@ -57,13 +64,21 @@ cmd = -1
 motA,motB,gripC,gripD = -1,-1,-1,-1
 channel_prev = sensors["IR_control"].get_channel()
 cmd_prev = sensors["IR_control"].get_cmd()
-
-#predictor = frcnn.ObjectPredictor()
+"""
 
 
 while(1):
+    
+    see_and_tell(predictor=predictor,client=client,topic="vision",img=cam_data['onBoardCamera'])
+    time.sleep(1)
+    data_counter = data_counter + 1
+    #time.sleep(0.2)
+   
+client.loop_stop()
 
-    channel = sensors["IR_control"].get_channel()
+
+"""
+channel = sensors["IR_control"].get_channel()
     cmd = sensors["IR_control"].get_cmd()
     cam_data = sensors_simple.camera.read()
     
@@ -109,7 +124,4 @@ while(1):
            print("Something went wrong with csv opening")
            pass
 
-    data_counter = data_counter + 1
-    time.sleep(0.2)
-   
-client.loop_stop()
+"""
