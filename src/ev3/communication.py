@@ -6,6 +6,7 @@ from Sensors.sensors import publishable_names_dict, items_to_publish, addSensorD
 import ev3control.master as master
 import ev3control.slave as slave
 from ev3control.messages import *
+from MotionCtrl.actuators_simple import addActuatorDevices
 
 def get_behaviours_and_params(behaviour_json, params_json):
 
@@ -35,8 +36,11 @@ def comm_init(topics_to_listen=[], qos_listen=None, topics_to_publish=[] ,qos_pu
       client.subscribe(topics_to_listen[top],qos=qos_listen[top])            
    #Subscribe to topics we send values to
    for top in range(len(topics_to_publish)):
-      if topics_to_publish[top]=="vision":
+      if topics_to_publish[top]=="IR":
          addSensorDevices(client,topics_to_publish[top],qos=qos_pub[top])
+      elif topics_to_publish[top]=="actuators":
+         addActuatorDevices(client,topics_to_publish[top],qos=qos_pub[top])
+
 
    if log==1:
       client.on_log = on_log

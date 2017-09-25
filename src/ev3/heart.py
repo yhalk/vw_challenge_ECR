@@ -29,7 +29,6 @@ while(1):
    print("EV3 work in progress..."+str(counter))
 
    (channel,cmd,valid) = get_IR_cmd(publishable_names_dict["IR_control"])
-   print(channel,cmd)  
    if (int(channel)!=2):
       if (int(channel)!=3 and int(channel)!=-1):
          a,b,lift,grip = ir_ctrl.ir_to_control(actuators,int(channel),int(cmd))
