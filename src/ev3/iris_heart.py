@@ -13,9 +13,8 @@ from IR_control import get_IR_cmd
 from actuators_simple import ev3_actuators
 import data_collection
 import datetime
-from vision_commands import * 
+ 
 import ir_to_control_ev3 as ir_ctrl
-import low_level_ctrl as ctrl
 
 def on_log(client, userdata, level, buf):
    print("EV3 log: ",buf)
@@ -26,19 +25,17 @@ client = mqtt.Client()
 client.connect(config.BROKER_IP, config.BROKER_PORT, keepalive=60)
 client.on_message = partial(slave.process_message, actuators)
 client.subscribe("actuators",qos=2)  
-client.subscribe("vision")
 topic = "sensors"
 topic_data = "data_collect"
 
-#client.on_log = on_log
+client.on_log = on_log
 
-client.loop_start()
+#client.loop_start()
 
-
-#while (actuators=={}):
-#     client.loop_read()
-    
-#camera_feedback = actuators['Vision'] 
+"""
+while (actuators=={}):
+     client.loop_read()
+"""     
 
 #Add sensors for which we publish values to the Jetson list of receiving sensor values
 #Add also data collector atm
@@ -53,6 +50,14 @@ actuators['MediumMotor(outC)'] = ev3_actuators[3]
 actuators_l = [ev3_actuators[0],ev3_actuators[1],ev3_actuators[2],ev3_actuators[3]]
 print(actuators_l)
 
+print("position")
+for actuator in actuators_l:
+    
+    print(actuator.position)
+
+
+
+
 counter = 0
 channel_prev = -1
 cmd_prev = -1
@@ -66,35 +71,25 @@ data_collector = data_collection.DataCollector()
 while(1):
    #Read IR controller input
    (channel,cmd,valid) = get_IR_cmd(sensors_names_dict["IR_control"])
-   
    if (int(channel)!=2):
       if (int(channel)!=3 and int(channel)!=-1):
          a,b,lift,grip = ir_ctrl.ir_to_control(actuators_l,int(channel),int(cmd))
-         #timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
-         #data_collector.set_data(a,b,lift,grip,timestamp)
-         #print("ffff "+repr(getattr(data_collector,'data')))
+         timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+         data_collector.set_data(a,b,lift,grip,timestamp)
+         print("ffff "+repr(getattr(data_collector,'data')))
       else:
           print("ch3")
           _,_,_,_ = ir_ctrl.ir_to_control(actuators_l,int(channel),int(cmd))
-   
-   #dst = getattr(camera_feedback,'distance')
-   #angle = getattr(camera_feedback,'angle')
-   #class_name = getattr(camera_feedback,'class_name')
-   #if dst!=None and angle!=None:
-   #   ctrl.move_towards_object(actuators_l[0],actuators_l[2],actuators_l[3],actuators_l[1],float(dst),float(angle)) 
-   #   print("at object")
-   #   time.sleep(15)
-
-   print(channel)
-   print(cmd)
+ 
+   time.sleep(1)
    #Publish sensor readings  --- CHECK QUALITY OF SERVICE LEVEL FOR SENSOR VALUES
    for sensor, property_names in items_to_publish.items():
         for property_name in property_names:
-           if ((sensor=="IR_control") and (property_name=="cmd" or property_name=="channel") and (valid==1) and int(cmd)==9 and int(channel)==0):  #publish only for data collection atm
+           if ((sensor=="IR_control") and (property_name=="cmd" or property_name=="channel") and (valid==1) and int(cmd)==9 and int(channel)==2):  #publish only for data collection atm
               master.publish_cmd(client,topic,SetAttrMessage(sensor, property_name, str(cmd)))
               master.publish_cmd(client,topic,SetAttrMessage(sensor, property_name, str(channel)))
-              #print(repr(getattr(data_collector,'data')))
-              #master.publish_cmd(client,topic_data,SetAttrMessage("data_collector","data",repr(data_collector.get_data())))
+              print(repr(getattr(data_collector,'data')))
+              master.publish_cmd(client,topic_data,SetAttrMessage("data_collector","data",repr(data_collector.get_data())))
            else:
               pass
     
