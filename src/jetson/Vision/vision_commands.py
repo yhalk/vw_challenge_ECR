@@ -1,6 +1,7 @@
 import ev3control.master as master
-import frcnn
+import Vision.frcnn
 import cv2
+from ev3control.messages import *
 
 class VisualFeedback():
 
@@ -27,10 +28,15 @@ class VisualFeedback():
     angle = property(get_angle,set_angle,'angle')
 
 
+def grab_camera_image(camera_sensor):
+
+    return camera_sensor.read()['onBoardCamera']
+
 
 def addVisionDevices(client,topic,qos=2):
     
     master.publish_cmd(client, topic, AddDeviceMessage('Vision', "VisualFeedback()"),delay=1,qos=qos)
+
 
 def get_bbox(key_tuple):
 
@@ -49,11 +55,12 @@ def get_angle(key_tuple):
 def analyse_image(predictor,img):
 
     ret_val = predictor.detect_known_objects(img)
-    bbox = get_bbox(ret_val[0])  # Get first detected object,  change later???
-    distance = get_distance(ret_val[0])
-    angle = get_angle(ret_val[0])
-
-    info = (bbox,distance,angle)
+    info = []
+    for i in range(len(ret_val)):
+        bbox = get_bbox(ret_val[i]) 
+        distance = get_distance(ret_val[i])
+        angle = get_angle(ret_val[i])
+        info.append((bbox,distance,angle))
 
     return info
  

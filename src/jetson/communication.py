@@ -3,7 +3,7 @@ from functools import partial
 import paho.mqtt.client as mqtt
 import config as config
 import json
-
+import ev3control.slave as slave
 
 def get_behaviours_and_params(behaviour_json, params_json):
 

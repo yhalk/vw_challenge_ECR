@@ -5,16 +5,15 @@ import csv
 import time
 import config
 import ev3control.slave as slave
-from IR.ir_to_control import ir_to_control,data_collection_and_camera
 import IR.IR_control as remoteControl 
-import Sensors.sensors_simple   
-import Vision.frcnn
+import Sensors.sensors_simple as sensors  
+import Vision.frcnn as frcnn
 import datetime 
 from Vision.vision_commands import *
 from communication import comm_init,get_behaviours_and_params
 
 #Subscirbe to topics for listening and publishing
-client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish ,qos_pub=config.qos_pub, listening={}, log=1)
+client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish ,qos_pub=config.qos_pub, listening={}, log=0)
 
 #Create object detector
 predictor = frcnn.ObjectPredictor()
@@ -26,8 +25,12 @@ while (listening=={}):
    client.loop_read()
 client.loop_start()
 
+camera_sensor = sensors.camera
+
 behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
 while(1):
+    
+    image = grab_camera_image(camera_sensor)
 
     while (behaviours=={}):
        behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
@@ -38,6 +41,12 @@ while(1):
     time.sleep(0.1)
    
 client.loop_stop()
+
+
+
+
+
+
 
 
 """
@@ -60,6 +69,8 @@ channel_prev = sensors["IR_control"].get_channel()
 cmd_prev = sensors["IR_control"].get_cmd()
 
 
+<<<<<<< HEAD
+=======
 
 
 was in loop:
@@ -81,7 +92,13 @@ while(1):
         time.sleep(0.2)
         imu_data = imu.read()
         print("imu data: {}".format(imu_data))
+>>>>>>> f4b346205f06949ce8475eea2a6823452481b640
 
+
+was in loop:
+
+see_and_tell(predictor=predictor,client=client,topic="vision",img=cam_data['onBoardCamera'])
+    time.sleep(1)
     data_counter = data_counter + 1
 
 
