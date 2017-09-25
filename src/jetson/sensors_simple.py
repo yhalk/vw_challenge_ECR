@@ -16,7 +16,7 @@ class Sensor(object):
         raise ValueError('This function must be implemented by ')
 
 class IMU(Sensor):
-    def __init__(self, path_to_shared_lib_mpu='./IOInterface/jetson/mpu/libmpu.so', bus_filename='/dev/i2c-1', bus_adresses=[0x68, 0x69]):
+    def __init__(self, path_to_shared_lib_mpu='./mpu/libmpu.so', bus_filename='/dev/i2c-1', bus_adresses=[0x68, 0x69]):
         bus_filename = bus_filename.encode('ascii')
         self.libmpu = ctypes.cdll.LoadLibrary(path_to_shared_lib_mpu)
 
