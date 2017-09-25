@@ -58,7 +58,7 @@ class IMU(Sensor):
 class OnBoardCamera(Sensor):
     def __init__(self):
         self.name = 'onBoardCamera'
-        self.cap = cv2.VideoCapture("nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)(1280), height=(int)(720),format=(string)I420, framerate=(fraction)50/1 ! nvvidconv flip-method=0 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink")
+        self.cap = cv2.VideoCapture("nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)(1280), height=(int)(720),format=(string)I420, framerate=(fraction)2/1 ! nvvidconv flip-method=0 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink")
 
     def read(self):
         if self.cap.isOpened():

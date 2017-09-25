@@ -12,6 +12,9 @@ import datetime
 from Vision.vision_commands import *
 from communication import comm_init,get_behaviours_and_params
 
+from hello_world import *
+
+
 #Subscirbe to topics for listening and publishing
 client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish ,qos_pub=config.qos_pub, listening={}, log=0)
 
@@ -22,6 +25,7 @@ print("Client is set up, will start listening now!")
 
 #Wait until listeners have been set up, and then start waiting for values
 while (listening=={}):
+   print("ss")
    client.loop_read()
 client.loop_start()
 
@@ -30,12 +34,12 @@ camera_sensor = sensors.camera
 behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
 while(1):
     
-    image = grab_camera_image(camera_sensor)
-
-    while (behaviours=={}):
-       behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
-    for i in list(behaviours.keys()):
-       eval(behaviours[i])(params[i])
+    #image = grab_camera_image(camera_sensor)
+    
+    behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
+    if behaviours!={}:
+       for i in list(behaviours.keys()):
+           eval(behaviours[i])(params[i])
       
     #Start reading json for behaviour execution
     time.sleep(0.1)
