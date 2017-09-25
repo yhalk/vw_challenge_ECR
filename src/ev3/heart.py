@@ -21,7 +21,6 @@ client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_liste
 
 
 while (listening=={}):
-     print("sfdsfsd")
      client.loop_read()
 
 
