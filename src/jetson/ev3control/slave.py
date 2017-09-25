@@ -4,9 +4,8 @@ from functools import partial
 import paho.mqtt.client as mqtt
 import ev3dev.ev3 as ev3
 from ev3dev.ev3 import *
-import IR_control as remoteControl
+import IR.IR_control as remoteControl
 from .messages import *
-from data_collection import DataCollector
 
 MASTER_HOST = "localhost"
 
