@@ -18,6 +18,9 @@ import math
 import keras_frcnn.resnet as nn
 import datetime
 
+KNOWN_CLASSES = ["blue", "green", "grey", "multicolor", "white", "yellow"]
+
+
 class ObjectPredictor:
         #os.environ['CUDA_VISIBLE_DEVICES'] = ''
 

@@ -12,9 +12,12 @@ import IR_control as remoteControl ##Needed if included in sensors_simple??
 from actuators_simple import addActuatorDevices
 import sensors_simple   
 from data_collection import DataCollector
-import frcnn
+#import frcnn
 import datetime 
 from vision_commands import *
+
+
+imu = sensors_simple.IMU()
 
    
  
@@ -29,22 +32,22 @@ client.on_message = partial(slave.process_message, sensors)
 client.subscribe("sensors",qos=2)            
 client.subscribe("data_collect",qos=2)
 topic="actuators"
-client.on_log = on_log
+#client.on_log = on_log
 
 
 #Add actuators for which we publish values to the EV3 list of receiving actuator values
 addActuatorDevices(client,topic)
-addVisualDevices(client,topic="vision")
+addVisionDevices(client,topic="vision")
 
-predictor = frcnn.ObjectPredictor()
+#predictor = frcnn.ObjectPredictor()
 
 
 print("Client is set up, will start listening now!")
 
-"""
+
 while (sensors=={}):
    client.loop_read()
-"""
+
 
 client.loop_start()
 
@@ -68,9 +71,20 @@ cmd_prev = sensors["IR_control"].get_cmd()
 
 
 while(1):
-    
-    see_and_tell(predictor=predictor,client=client,topic="vision",img=cam_data['onBoardCamera'])
-    time.sleep(1)
+    #cam_data = sensors_simple.camera.read()    
+    #see_and_tell(predictor=predictor,client=client,topic="vision",img=cam_data['onBoardCamera'])
+    #time.sleep(1)
+    channel = getattr(sensors["IR_control"],'channel')
+    cmd = getattr(sensors["IR_control"],'cmd')
+    print(channel)
+    print(cmd)
+    if (int(channel)==0 and int(cmd)==9):
+          print("CHANGE RUN")
+    for _ in range(10):
+        time.sleep(0.2)
+        imu_data = imu.read()
+        print("imu data: {}".format(imu_data))
+
     data_counter = data_counter + 1
     #time.sleep(0.2)
    
