@@ -1,11 +1,12 @@
 """MQTT client that listens for commands from a master and turns them into Ev3 commands"""
 from functools import partial
-from vision_commands import *
+
 import paho.mqtt.client as mqtt
 import ev3dev.ev3 as ev3
 from ev3dev.ev3 import *
-import IR_control as remoteControl
+import IR.IR_control as remoteControl
 from .messages import *
+from Sensors.vision_commands_ev3 import *
 
 MASTER_HOST = "localhost"
 

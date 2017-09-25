@@ -1,9 +1,0 @@
-ev3control/__init__.py
-ev3control/master.py
-ev3control/messages.py
-ev3control/slave.py
-ev3control.egg-info/PKG-INFO
-ev3control.egg-info/SOURCES.txt
-ev3control.egg-info/dependency_links.txt
-ev3control.egg-info/requires.txt
-ev3control.egg-info/top_level.txt
