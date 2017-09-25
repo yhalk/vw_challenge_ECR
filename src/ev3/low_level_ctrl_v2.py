@@ -1,5 +1,6 @@
 from ctrl_config import *
 import time
+import math
 
 def stop_actuator(actuators,stop_action):
 
@@ -80,7 +81,6 @@ def backward_cm(actuator1, actuator2, cm):
         print("MC: Move for "+str(cm) + " new position " + str(cm*BACKWARD_TICKS_PER_CM))
         print("MC: position before "+ str(actuator1.position) + " " + str(actuator2.position))
     backward_position(actuator1,actuator2, cm*BACKWARD_TICKS_PER_CM)
-    time.sleep(cm*0.15)
     if LOG_ON==1:
         print("MC: position after "+ str(actuator1.position) + " " + str(actuator2.position))
 
@@ -93,36 +93,6 @@ def backward_cm(actuator1, actuator2, cm):
 ################################################
 # OPEN - CLOSE
 ################################################
-
-def open_gripper_abs_position(actuator,position,speed_sp=SPEED_GRIP_OPEN,time_sp=None):
-
-    if LOG_ON==1:
-        print("MC: Gripper position before opening " + str(actuator.position))
-
-    actuator.polarity = 'normal'
-    actuator.stop_action = 'hold'
-    actuator.run_to_abs_pos(position_sp=GRIP_OPEN_POS,speed_sp=speed_sp, stop_action='hold')
-    time.sleep(1)
-    if LOG_ON==1:
-        print("... and gripper position after" + str(actuator.position))
-     
-
-def close_gripper_abs_position(actuator,position,speed_sp=SPEED_GRIP_CLOSE,time_sp=None):
-    if LOG_ON==1:
-        print("MC: Gripper position before closing " + str(actuator.position))
-
-#    actuator.polarity = 'inversed'
-    actuator.stop_action = 'hold'
-    actuator.run_to_abs_pos(position_sp=GRIP_CLOSE_POS,speed_sp=speed_sp, stop_action='hold')
-#    actuator.polarity = 'normal'
-    
-    time.sleep(1)
-    if LOG_ON==1:
-        print("... and gripper position after " + str(actuator.position))
-
-
-
-
 
 def open_gripper_position(actuator,position,speed_sp=SPEED_GRIP_OPEN,time_sp=None):
 
@@ -146,7 +116,6 @@ def close_gripper_position(actuator,position,speed_sp=SPEED_GRIP_CLOSE,time_sp=N
     actuator.run_to_rel_pos(position_sp=position,speed_sp=speed_sp)
     actuator.polarity = 'normal'
     
-    time.sleep(1)
     if LOG_ON==1:
         print("... and gripper position after " + str(actuator.position))
 
@@ -181,7 +150,6 @@ def lift_gripper_position(actuator,position,speed_sp=SPEED_GRIP_UP,time_sp=None)
     actuator.polarity = 'normal'
     actuator.stop_action = 'hold'
     actuator.run_to_rel_pos(position_sp=position,speed_sp=speed_sp)
-    time.sleep(1)
 
     if LOG_ON==1:
         print("... and gripper position after lifting " + str(actuator.position))
@@ -197,35 +165,6 @@ def lower_gripper_position(actuator,position,speed_sp=SPEED_GRIP_DOWN,time_sp=No
     actuator.run_to_rel_pos(position_sp=position,speed_sp=speed_sp)
     actuator.polarity = 'normal'
 
-    time.sleep(1)
-    if LOG_ON==1:
-        print("... and gripper position after lowering " + str(actuator.position))
-  
-def lift_gripper_abs_position(actuator,position,speed_sp=SPEED_GRIP_UP,time_sp=None):
-
-    if LOG_ON==1:
-        print("MC: Gripper position before lifting " + str(actuator.position))
-
-    actuator.polarity = 'normal'
-    actuator.stop_action = 'hold'
-    actuator.run_to_abs_pos(position_sp=GRIP_UPPER_POS,speed_sp=speed_sp)
-    time.sleep(1)
-
-    if LOG_ON==1:
-        print("... and gripper position after lifting " + str(actuator.position))
-
-    
-def lower_gripper_abs_position(actuator,position,speed_sp=SPEED_GRIP_DOWN,time_sp=None):
-
-    if LOG_ON==1:
-        print("MC: Gripper position before lowering " + str(actuator.position))
-
-#    actuator.polarity = 'inversed'
-    actuator.stop_action = 'hold'
-    actuator.run_to_abs_pos(position_sp=GRIP_LOWER_POS,speed_sp=speed_sp)
-#    actuator.polarity = 'normal'
-
-    time.sleep(1)
     if LOG_ON==1:
         print("... and gripper position after lowering " + str(actuator.position))
   

@@ -1,11 +1,11 @@
 import paho.mqtt.client as mqtt
-import config as config
+import jetson_config_i as config
 import ev3dev.ev3 as ev3
 import ctypes
 import numpy as np
 import sys
 import cv2
-import IR.IR_control as remoteControl
+import IR_control as remoteControl
 
 
 class Sensor(object):

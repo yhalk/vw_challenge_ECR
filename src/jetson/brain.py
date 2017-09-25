@@ -49,11 +49,6 @@ client.loop_stop()
 
 
 
-
-
-
-
-
 """
 
 #Counter for the image names
@@ -74,6 +69,30 @@ channel_prev = sensors["IR_control"].get_channel()
 cmd_prev = sensors["IR_control"].get_cmd()
 
 
+<<<<<<< HEAD
+=======
+
+
+was in loop:
+
+see_and_tell(predictor=predictor,client=client,topic="vision",img=cam_data['onBoardCamera'])
+    time.sleep(1)
+
+while(1):
+    #cam_data = sensors_simple.camera.read()    
+    #see_and_tell(predictor=predictor,client=client,topic="vision",img=cam_data['onBoardCamera'])
+    #time.sleep(1)
+    channel = getattr(sensors["IR_control"],'channel')
+    cmd = getattr(sensors["IR_control"],'cmd')
+    print(channel)
+    print(cmd)
+    if (int(channel)==0 and int(cmd)==9):
+          print("CHANGE RUN")
+    for _ in range(10):
+        time.sleep(0.2)
+        imu_data = imu.read()
+        print("imu data: {}".format(imu_data))
+>>>>>>> f4b346205f06949ce8475eea2a6823452481b640
 
 
 was in loop:

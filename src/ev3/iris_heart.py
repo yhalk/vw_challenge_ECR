@@ -4,55 +4,61 @@ from functools import partial
 import paho.mqtt.client as mqtt
 import config
 import ev3dev.ev3 as ev3
-from Sensors.sensors import publishable_names_dict, items_to_publish, addSensorDevices
+from sensors import sensors_names_dict, items_to_publish, addSensorDevices
 import time
 import ev3control.master as master
 import ev3control.slave as slave
 from ev3control.messages import *
-from IR.IR_control import get_IR_cmd
-from MotionCtrl.actuators_simple import actuators
+from IR_control import get_IR_cmd
+from actuators_simple import ev3_actuators
+import data_collection
 import datetime
-import IR.ir_to_control_ev3 as ir_ctrl
-from communication import comm_init, get_behaviours_and_params, publish_all
+ 
+import ir_to_control_ev3 as ir_ctrl
 
+def on_log(client, userdata, level, buf):
+   print("EV3 log: ",buf)
 
-#Subscirbe to topics for listening and publishing
-client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish, qos_pub=config.qos_pub, listening={}, log=0)
+actuators = {}
+#Set up EV3 client
+client = mqtt.Client()
+client.connect(config.BROKER_IP, config.BROKER_PORT, keepalive=60)
+client.on_message = partial(slave.process_message, actuators)
+client.subscribe("actuators",qos=2)  
+topic = "sensors"
+topic_data = "data_collect"
 
+client.on_log = on_log
 
-while (listening=={}):
-     print("sfdsfsd")
+#client.loop_start()
+
+"""
+while (actuators=={}):
      client.loop_read()
+"""     
+
+#Add sensors for which we publish values to the Jetson list of receiving sensor values
+#Add also data collector atm
+addSensorDevices(client,topic)
+
+"""
+actuators['LargeMotor(outA)'] = ev3_actuators[0]
+actuators['LargeMotor(outB)'] = ev3_actuators[1]
+actuators['LargeMotor(outD)'] = ev3_actuators[2]
+actuators['MediumMotor(outC)'] = ev3_actuators[3]
+"""
+actuators_l = [ev3_actuators[0],ev3_actuators[1],ev3_actuators[2],ev3_actuators[3]]
+print(actuators_l)
+
+print("position")
+for actuator in actuators_l:
+    
+    print(actuator.position)
+
+
 
 
 counter = 0
-while(1):
-   print("EV3 work in progress..."+str(counter))
-
-   (channel,cmd,valid) = get_IR_cmd(publishable_names_dict["IR_control"])
-   print(channel,cmd)  
-   if (int(channel)!=2):
-      if (int(channel)!=3 and int(channel)!=-1):
-         a,b,lift,grip = ir_ctrl.ir_to_control(actuators,int(channel),int(cmd))
-      else:
-          _,_,_,_ = ir_ctrl.ir_to_control(actuators,int(channel),int(cmd))
-
-   
-   publish_all(client,config.topics_to_publish)
-
-
-   
-   client.loop_read()
-
-   counter = counter + 1
-   time.sleep(0.2)
-   
-client.disconnect()
-
-
-
-"""
-
 channel_prev = -1
 cmd_prev = -1
 #If IR return list is != [0,0,0,0]
@@ -60,13 +66,10 @@ valid = 0
 #Values to transmit for data collection
 a,b,grip,lift,timestamp = -1,-1,-1,-1,-1
 
+data_collector = data_collection.DataCollector()
 
-
-was in loop:
-
-
-
-#Read IR controller input
+while(1):
+   #Read IR controller input
    (channel,cmd,valid) = get_IR_cmd(sensors_names_dict["IR_control"])
    if (int(channel)!=2):
       if (int(channel)!=3 and int(channel)!=-1):
@@ -77,8 +80,7 @@ was in loop:
       else:
           print("ch3")
           _,_,_,_ = ir_ctrl.ir_to_control(actuators_l,int(channel),int(cmd))
-   
-
+ 
    time.sleep(1)
    #Publish sensor readings  --- CHECK QUALITY OF SERVICE LEVEL FOR SENSOR VALUES
    for sensor, property_names in items_to_publish.items():
@@ -94,4 +96,9 @@ was in loop:
    #Get and set actuator properties
    client.loop_read()   
 
-"""
+   print("EV3 work in progress..."+str(counter))
+   counter = counter + 1
+   time.sleep(0.2)
+   
+client.disconnect()
+

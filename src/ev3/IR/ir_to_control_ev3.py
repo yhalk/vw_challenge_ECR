@@ -1,10 +1,10 @@
 import ev3control.master as master
-import IR_control as remoteControl
+import IR.IR_control as remoteControl
 import ev3dev.ev3 as ev3
 from ev3control.messages import *
 import csv
 import os
-import low_level_ctrl as ctrl
+import MotionCtrl.low_level_ctrl as ctrl
 
 
 REMOTE_NONE = 0
@@ -52,15 +52,15 @@ def gripper_control(actuators,cmd):
     speed_grip = 0
     print("gripper")
     if (cmd==REMOTE_RED_UP):
-        ctrl.lift_gripper_abs_position(actuator=actuators[1],position=100)
+        ctrl.lift_gripper_position(actuator=actuators[1],position=100)
     elif (cmd==REMOTE_RED_DOWN):
-        ctrl.lower_gripper_abs_position(actuator=actuators[1],position=30)
+        ctrl.lower_gripper_position(actuator=actuators[1],position=30)
     elif (cmd==REMOTE_BLUE_UP):
         #ctrl.open_gripper_full(actuators[3], position=100)
-        ctrl.open_gripper_abs_position(actuators[3],position=100)
+        ctrl.open_gripper_position(actuators[3],position=100)
     elif (cmd==REMOTE_BLUE_DOWN):
         #ctrl.close_gripper_full(actuators[3], position=70)
-        ctrl.close_gripper_abs_position(actuators[3],position=50)
+        ctrl.close_gripper_position(actuators[3],position=50)
     elif (cmd==REMOTE_BAECON_MODE_ON):
         ctrl.stop_actuator(actuators=[actuators[3],actuators[1]],stop_action='brake')
     else:

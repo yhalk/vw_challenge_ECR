@@ -1,4 +1,4 @@
-from ctrl_config import *
+from MotionCtrl.ctrl_config import *
 import time
 
 def stop_actuator(actuators,stop_action):
@@ -19,6 +19,7 @@ def forward_1_step_time(actuator1,actuator2,speed_sp=SPEED_FWD,time_sp=TIME_FWD)
     actuator1.run_timed(time_sp=time_sp,speed_sp=speed_sp,stop_action='brake')
     actuator2.run_timed(time_sp=time_sp,speed_sp=speed_sp,stop_action='brake')
     
+
 
 def turn_deg_position(actuator1, actuator2,position, speed_sp=SPEED_TURN,time_sp=TIME_TURN):
     #4.2 degrees with position 25
