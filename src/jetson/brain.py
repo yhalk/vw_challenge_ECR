@@ -11,7 +11,7 @@ import Vision.frcnn as frcnn
 import datetime 
 from Vision.vision_commands import *
 from communication import comm_init,get_behaviours_and_params
-from behaviours.box_detection.detect_chili import get_box_distance
+from behaviours.box_detection.detect_box import detect_box
 
 from hello_world import *
 
@@ -25,9 +25,10 @@ predictor = frcnn.ObjectPredictor()
 print("Client is set up, will start listening now!")
 
 #Wait until listeners have been set up, and then start waiting for values
-
+"""
 while (listening=={}):
    client.loop_read()
+"""
 client.loop_start()
 
 print(listening)
@@ -38,11 +39,17 @@ behaviours,params = get_behaviours_and_params(config.behaviour_json, config.para
 while(1):
     
     image = grab_camera_image(camera_sensor)
-    
+    cv2.imshow("ddd",image)    
+    cv2.waitKey(10)    
+
     behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
     if behaviours!={}:
+       #If behaviour needs image, make sure image is passed as argument to behaviour
        for i in list(behaviours.keys()):
-           eval(behaviours[i])(params[i])
+           if ("camera" in list(params[i].keys())):
+              eval(behaviours[i])(params[i],image,client)
+           else:
+              eval(behaviours[i])(params[i],client)
       
     #Start reading json for behaviour execution
     time.sleep(0.1)
