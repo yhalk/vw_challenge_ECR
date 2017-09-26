@@ -9,11 +9,12 @@ import time
 import ev3control.master as master
 import ev3control.slave as slave
 from ev3control.messages import *
-from IR.IR_control import get_IR_cmd
-from MotionCtrl.actuators_simple import actuators
+from IR.ir_to_control_ev3 import IR_controller
+#from MotionCtrl.actuators_simple import actuators
 import datetime
-import IR.ir_to_control_ev3 as ir_ctrl
+#import IR.ir_to_control_ev3 as ir_ctrl
 from communication import comm_init, get_behaviours_and_params, publish_all
+from threading import Thread
 
 
 #Subscirbe to topics for listening and publishing
@@ -23,22 +24,16 @@ client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_liste
 while (listening=={}):
      client.loop_read()
 
+print(listening)
+
+
 
 counter = 0
 while(1):
    print("EV3 work in progress..."+str(counter))
-
-   (channel,cmd,valid) = get_IR_cmd(publishable_names_dict["IR_control"])
-   if (int(channel)!=2):
-      if (int(channel)!=3 and int(channel)!=-1):
-         a,b,lift,grip = ir_ctrl.ir_to_control(actuators,int(channel),int(cmd))
-      else:
-          _,_,_,_ = ir_ctrl.ir_to_control(actuators,int(channel),int(cmd))
-
    
+   IR_controller()
    publish_all(client,config.topics_to_publish)
-
-
    
    client.loop_read()
 

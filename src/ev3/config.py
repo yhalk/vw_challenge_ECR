@@ -12,3 +12,11 @@ qos_listen = [2]
 topics_to_publish = ["actuators","IR"]
 qos_pub = [1,2]
 
+
+
+
+
+
+
+
+
