@@ -40,6 +40,8 @@ def comm_init(topics_to_listen=[], qos_listen=None, topics_to_publish=[] ,qos_pu
          addSensorDevices(client,topics_to_publish[top],qos=qos_pub[top])
       elif topics_to_publish[top]=="actuators":
          addActuatorDevices(client,topics_to_publish[top],qos=qos_pub[top])
+      elif topics_to_publish[top]=="odometry":
+         addOdometryDevices(client,topics_to_publish[top],qos=qos_pub[top])
 
 
    if log==1:
@@ -52,12 +54,20 @@ def  publish_all(client,config_topics_to_publish):
 
      for topic in config_topics_to_publish:
          if topic=="IR":
-            sensor = "IR_control"
-            for property_name in items_to_publish[sensor]:
+             sensor = "IR_control"
+             for property_name in items_to_publish[sensor]:
                 prop = getattr(publishable_names_dict["IR_control"],property_name)
-                master.publish_cmd(client,topic,SetAttrMessage(sensor, property_name, str(prop)))
+                master.publish_cmd(client,topic,SetAttrMessage(sensor, property_name, repr(prop)))
          elif topic=="actuators":
              for pub, property_names in items_to_publish.items():
-                 for property_name in property_names:
-                     val = getattr(publishable_names_dict[pub],property_name)
-                     master.publish_cmd(client,topic,SetAttrMessage(pub, property_name, repr(val)))
+                 if ("out" in pub):
+                     for property_name in property_names:
+                         val = getattr(publishable_names_dict[pub],property_name)
+                         master.publish_cmd(client,topic,SetAttrMessage(pub, property_name, repr(val)))
+         elif topic=="odometry":
+             sensor = "odometer"
+             for property_name in items_to_publish[sensor]:
+                prop = getattr(publishable_names_dict["odometer"],property_name)
+                master.publish_cmd(client,topic,SetAttrMessage(sensor, property_name, repr(prop)))
+
+
