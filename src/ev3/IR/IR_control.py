@@ -205,8 +205,14 @@ class InfraredSensor(LegoSensor):
 def get_IR_cmd(ir):
 
     ir_input = list(ir.remote)
+    for i in range(len(ir_input)):
+        if ir_input[i]<0:
+           ir_input[i] = 0
+        elif ir_input[i] > 9:
+           ir_input[i] = 0
+
     channel = [i for i, e in enumerate(ir_input) if e != 0]
-    
+    print(ir_input) 
     if channel==[]:
        return (-1,-1,0)
     
