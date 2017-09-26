@@ -6,16 +6,21 @@ import ev3control.master as master
 from ev3control.messages import *
 import time
 from MotionCtrl.actuators_simple import actuators
+from Sensors.odometry import Odometry
 
 #Set IR sensor to remote control mode
 ir = remoteControl.InfraredSensor()
 ir.mode = "IR-REMOTE"
 
+#Get odometer
+odometer = Odometry()
+
 publishable_names_dict = { "IR_control":ir,
                             config.LARGE_MOTOR_A:actuators[0],
                             config.LARGE_MOTOR_B:actuators[1],
                             config.LARGE_MOTOR_D:actuators[2],
-                            config.MEDIUM_MOTOR:actuators[3]
+                            config.MEDIUM_MOTOR:actuators[3],
+                            "odometer":odometer
                           }
 
 # Make dict where key is sensor name and value

@@ -6,7 +6,8 @@ import time
 import config
 import ev3control.slave as slave
 import IR.IR_control as remoteControl 
-import Sensors.sensors_simple as sensors  
+#import Sensors.sensors_simple as sensors  
+import sensors_simple_old as sensors   # RM!
 import Vision.frcnn as frcnn
 import datetime 
 from Vision.vision_commands import *
@@ -17,7 +18,7 @@ from hello_world import *
 
 
 #Subscirbe to topics for listening and publishing
-client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish ,qos_pub=config.qos_pub, listening={}, log=0)
+#client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish ,qos_pub=config.qos_pub, listening={}, log=0)
 
 #Create object detector
 predictor = frcnn.ObjectPredictor()
@@ -29,9 +30,9 @@ print("Client is set up, will start listening now!")
 while (listening=={}):
    client.loop_read()
 """
-client.loop_start()
-
-print(listening)
+#client.loop_start()
+client=None
+#print(listening)
 
 camera_sensor = sensors.camera
 
@@ -39,8 +40,6 @@ behaviours,params = get_behaviours_and_params(config.behaviour_json, config.para
 while(1):
     
     image = grab_camera_image(camera_sensor)
-    cv2.imshow("ddd",image)    
-    cv2.waitKey(10)    
 
     behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
     if behaviours!={}:

@@ -23,4 +23,7 @@ class Odometry():
       angle_turned = property(get_angle_turned,set_angle_turned,'angle_turned')
 
 
+def addOdometryDevices(client,topic,qos):
+
+    master.publish_cmd(client, topic,AddDeviceMessage('Odometer', "Odometry()"),1,qos=qos)
 

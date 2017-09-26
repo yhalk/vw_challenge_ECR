@@ -24,7 +24,7 @@ def get_box_distance(frame):
 
     height, width, channels = frame.shape
     marker_distances = []
-    print(markers)
+    #print(markers)
     for marker in markers:
         marker_id = marker[0]
         marker_coor = marker[1]
@@ -34,7 +34,7 @@ def get_box_distance(frame):
         y2 = marker_coor[2][1]
 
         angle, distance = calculate_angle_and_distance(width,x1,x2,y1,y2)
-        print(distance)
+        #print(distance)
         marker_distances.append([marker_id, angle, distance])
 
     return marker_distances
