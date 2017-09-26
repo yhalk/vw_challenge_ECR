@@ -11,6 +11,7 @@ import Vision.frcnn as frcnn
 import datetime 
 from Vision.vision_commands import *
 from communication import comm_init,get_behaviours_and_params
+from behaviours.box_detection.detect_chili import get_box_distance
 
 from hello_world import *
 
@@ -24,17 +25,19 @@ predictor = frcnn.ObjectPredictor()
 print("Client is set up, will start listening now!")
 
 #Wait until listeners have been set up, and then start waiting for values
+
 while (listening=={}):
-   print("ss")
    client.loop_read()
 client.loop_start()
+
+print(listening)
 
 camera_sensor = sensors.camera
 
 behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
 while(1):
     
-    #image = grab_camera_image(camera_sensor)
+    image = grab_camera_image(camera_sensor)
     
     behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
     if behaviours!={}:

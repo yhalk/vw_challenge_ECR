@@ -88,6 +88,7 @@ def publish_vision_info(client,topic,info):
 
     master.publish_cmd(client,topic, SetAttrMessage('Vision','distance',str(info[1])),qos=0) #do we care about quality of service here??? probably not,want speed
     master.publish_cmd(client,topic, SetAttrMessage('Vision','angle',str(info[2])),qos=0)
+    #master.publish_cmd(client,topic, SetAttrMessage('Vision','class_name',str(info[0])),qos=0)  -- ADD NAME AND UUID, RECHECK ARG POSITIONS IN INFO
 
 def save_image(img_name,img,info):
 
