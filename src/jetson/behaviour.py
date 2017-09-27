@@ -1,2 +1,2 @@
-{"test":"hello_world",
-"spot_box":"detect_box"}
+{"spot_box":"detect_box",
+"sleep":"timing"}

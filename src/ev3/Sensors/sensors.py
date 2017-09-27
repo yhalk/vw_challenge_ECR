@@ -6,7 +6,7 @@ import ev3control.master as master
 from ev3control.messages import *
 import time
 from MotionCtrl.actuators_simple import actuators
-from Sensors.odometry import Odometry
+from Sensors.odometry_ev3 import Odometry
 
 #Set IR sensor to remote control mode
 ir = remoteControl.InfraredSensor()

@@ -80,7 +80,7 @@ def analyse_image(predictor,img):
     ret_val = predictor.detect_known_objects(img)
     info = []
     for i in range(len(ret_val)):
-        class_name = get_class_name(ret_val[i])
+        class_name = "object_"+get_class_name(ret_val[i])
         bbox = get_bbox(ret_val[i]) 
         distance = get_distance(ret_val[i])
         angle = get_angle(ret_val[i])

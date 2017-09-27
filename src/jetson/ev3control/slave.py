@@ -6,6 +6,7 @@ import ev3dev.ev3 as ev3
 from ev3dev.ev3 import *
 import IR.IR_control as remoteControl
 from .messages import *
+from Sensors.odometry import Odometry
 
 MASTER_HOST = "localhost"
 
@@ -51,19 +52,19 @@ def process_message(objects: dict, client, userdata, msg):
     Assumes the message payload can be evaluated to one of the message types
     defined in `messages` module.
     """
-    print("receiving message")
+    #print("receiving message")
     message = _payload_to_message(msg)
     if isinstance(message, ShowAttrMessage):
         print(print_property(objects, *message))
     elif isinstance(message, SetAttrMessage):
-        print("Value before: ", print_property(objects, message.obj_name, message.attr_name))
+        #print("Value before: ", print_property(objects, message.obj_name, message.attr_name))
         set_property(objects, *message)
-        print("Value after:", print_property(objects, message.obj_name, message.attr_name))
+        #print("Value after:", print_property(objects, message.obj_name, message.attr_name))
     elif isinstance(message, RunMethodMessage):
-        print('running method')
+        #print('running method')
         run_method(objects, *message)
     elif isinstance(message, AddDeviceMessage):
-        print("adding object!")
+        #print("adding object!")
         objects[message.obj_name] = eval(message.obj_init)
         print("new objects", objects)
     else:

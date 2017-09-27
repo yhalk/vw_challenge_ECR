@@ -35,7 +35,8 @@ while(1):
       else:
           _,_,_,_ = ir_ctrl.ir_to_control(actuators,int(channel),int(cmd))
 
-   
+   distance = getattr(listening["Vision"], "distance") 
+   print(distance) 
    publish_all(client,config.topics_to_publish)
 
 

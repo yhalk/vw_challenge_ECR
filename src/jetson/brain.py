@@ -13,46 +13,41 @@ import datetime
 from Vision.vision_commands import *
 from communication import comm_init,get_behaviours_and_params
 from behaviours.box_detection.detect_box import detect_box
-
+from behaviours.timing import timing
 from hello_world import *
 
 
 #Subscirbe to topics for listening and publishing
-#client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish ,qos_pub=config.qos_pub, listening={}, log=0)
+client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish ,qos_pub=config.qos_pub, listening={}, log=0)
 
 #Create object detector
 predictor = frcnn.ObjectPredictor()
 
 print("Client is set up, will start listening now!")
 
-#Wait until listeners have been set up, and then start waiting for values
-"""
-while (listening=={}):
-   client.loop_read()
-"""
-#client.loop_start()
-client=None
-#print(listening)
 
 camera_sensor = sensors.camera
 
 behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
 while(1):
-    
-    image = grab_camera_image(camera_sensor)
-
-    behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
-    if behaviours!={}:
-       #If behaviour needs image, make sure image is passed as argument to behaviour
-       for i in list(behaviours.keys()):
-           if ("camera" in list(params[i].keys())):
-              eval(behaviours[i])(params[i],image,client)
-           else:
-              eval(behaviours[i])(params[i],client)
+   if (listening!={}):    
+       behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
+       if behaviours!={}:
+          #If behaviour needs image, make sure image is passed as argument to behaviour
+          image = grab_camera_image(camera_sensor)
+          for i in list(behaviours.keys()):
+              if (i!="sleep"):
+                 if ("camera" in list(params[i].keys())):
+                    eval(behaviours[i])(params[i],image,client)
+                 else:
+                    eval(behaviours[i])(params[i],client)
       
-    #Start reading json for behaviour execution
-    time.sleep(0.1)
-   
+   #Start reading json for behaviour execution
+   client.loop_read()
+   eval(behaviours["sleep"])(params["sleep"])
+
+   #time.sleep(0.5)
+ 
 client.loop_stop()
 
 
