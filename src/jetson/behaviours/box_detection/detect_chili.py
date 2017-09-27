@@ -14,7 +14,7 @@ def get_box_distance(frame):
         frame - the image coming from the camera that is used to detect the chili tags from
         
         Returns:
-        list in list with marker_id (cluster number), angle and distance in mm
+        list in list with marker_id (cluster number), distance in mm and angle
     '''
 #    cap = cv2.VideoCapture("nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)640, height=(int)480,format=(string)I420, framerate=(fraction)30/1 ! nvvidconv flip-method=0 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink")
 
@@ -24,9 +24,9 @@ def get_box_distance(frame):
 
     height, width, channels = frame.shape
     marker_distances = []
-    #print(markers)
     for marker in markers:
-        marker_id = marker[0]
+        marker_id = "box_" + marker[0]
+        print(marker_id)
         marker_coor = marker[1]
         x2 = marker_coor[0][0]
         y1 = marker_coor[0][1]
@@ -34,8 +34,7 @@ def get_box_distance(frame):
         y2 = marker_coor[2][1]
 
         angle, distance = calculate_angle_and_distance(width,x1,x2,y1,y2)
-        #print(distance)
-        marker_distances.append([marker_id, angle, distance])
+        marker_distances.append([marker_id, distance, angle])
 
     return marker_distances
 

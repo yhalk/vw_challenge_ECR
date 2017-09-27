@@ -8,10 +8,10 @@ def detect_box(params,image,client):
     boxes = get_box_distance(image)
     
     if (boxes!=[]):
-       #Get target box details
+       #Get target box details. "class_name" attribute must contain word "box"
        target_box = [i for i in boxes if (i[0]==box_idx)][0]
-       dst = target_box[2]
-       publish_vision_info(client,topic="Vision",info=target_box)  #check order of "info" contents, maybe extend target_box with None for UUID,class_name
+       print(target_box)
+       publish_vision_info(client,topic="vision",info=target_box)  #check order of "info" contents, maybe extend target_box with None for UUID,class_name
        return 1
     else:
        print("No box found")
