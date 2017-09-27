@@ -6,6 +6,18 @@ actuators = acts.actuators
 print(actuators[0].position_p)
 print(actuators[0].position_i)
 print(actuators[0].position_d)
+
+
+
+def mm_to_cm(mm):
+    return (mm/10)
+
+def cm_to_mm(cm):
+    return (cm*10)
+
+def wait_for(sec):
+    time.sleep(sec)
+
 def stop_actuator(stop_action):
 
     for actuator in actuators:
@@ -24,26 +36,29 @@ def turn_deg_position(position,actuator1=actuators[0], actuator2=actuators[2], s
     #4.2 degrees with position 25
     actuator1.run_to_rel_pos(position_sp=position, speed_sp=speed_sp,stop_action='hold')
     actuator2.run_to_rel_pos(position_sp=-position, speed_sp=speed_sp,stop_action='hold')
+    return (position/TURN_RIGHT_TICKS_PER_DEG)
 
 
 def turn_right_deg( degrees, actuator1=actuators[0], actuator2=actuators[2]):
     if LOG_ON==1:
-        print("MC: Rotate R for "+str(degrees) + " new position " + str((degrees)*TURN_RIGHT_TICKS_PER_DEG))
+       
+        #print("MC: Rotate R for "+str(degrees) + " new position " + repr(((degrees)*(TURN_RIGHT_TICKS_PER_DEG))))
         print("MC: position before "+ str(actuator1.position) + " " + str(actuator2.position))
-    turn_deg_position((degrees*TURN_RIGHT_TICKS_PER_DEG))
+    deg = turn_deg_position((degrees*TURN_RIGHT_TICKS_PER_DEG))
     time.sleep(1)
     if LOG_ON==1:
         print("... and position after "+ str(actuator1.position) + " " + str(actuator2.position))
-    
+    return deg
 
 def turn_left_deg( degrees, actuator1=actuators[0], actuator2=actuators[2]):
     if LOG_ON==1:
-        print("MC: Rotate L for "+str(degrees) + " new position " + str((degrees)*TURN_RIGHT_TICKS_PER_DEG))
+        print("MC: Rotate L for "+str(degrees) + " new position " + repr((degrees)*TURN_RIGHT_TICKS_PER_DEG))
         print("MC: position before "+ str(actuator1.position) + " " + str(actuator2.position))
-    turn_deg_position( -(degrees*TURN_LEFT_TICKS_PER_DEG))
+    deg = turn_deg_position( -(degrees*TURN_LEFT_TICKS_PER_DEG))
     time.sleep(1)
     if LOG_ON==1:
         print("... and position after "+ str(actuator1.position) + " " + str(actuator2.position))
+    return deg
 
 
 ## TRANSLATION
@@ -62,13 +77,12 @@ def backward_1_step_time(actuator1=actuators[0],actuator2=actuators[2],speed_sp=
 
 def forward_position(position, actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_FWD,time_sp=TIME_FWD):
     # 1 step is 10cm with position=360
-    print(actuator1)
-
     actuator1.polarity = 'normal'
     actuator2.polarity = 'normal'
     actuator1.run_to_rel_pos(position_sp=position,speed_sp=speed_sp,stop_action='hold')
     actuator2.run_to_rel_pos(position_sp=position,speed_sp=speed_sp,stop_action='hold')
 
+    return cm_to_mm(position/FORWARD_TICKS_PER_CM)
 
 
 def backward_position(position, actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_BWD,time_sp=TIME_BWD):
@@ -77,6 +91,7 @@ def backward_position(position, actuator1=actuators[0],actuator2=actuators[2],sp
     actuator2.polarity = 'inversed'
     actuator1.run_to_rel_pos(position_sp=position,speed_sp=speed_sp,stop_action='hold')
     actuator2.run_to_rel_pos(position_sp=position,speed_sp=speed_sp,stop_action='hold')
+    return cm_to_mm(position/BACKWARD_TICKS_PER_CM)
 
 
 
@@ -85,21 +100,21 @@ def forward_cm(cm, actuator1=actuators[0], actuator2=actuators[2]):
     if LOG_ON==1:
         print("MC: Move for "+str(cm) + " new position " + str(cm*FORWARD_TICKS_PER_CM))
         print("MC: position before "+ str(actuator1.position) + " " + str(actuator2.position))
-    forward_position(cm*FORWARD_TICKS_PER_CM)
+    dist = forward_position(cm*FORWARD_TICKS_PER_CM)
     time.sleep(cm*0.15)
     if LOG_ON==1:
         print("MC: position after "+ str(actuator1.position) + " " + str(actuator2.position))
-  
+    return dist
  
 def backward_cm(cm, actuator1=actuators[0], actuator2=actuators[2]):
     if LOG_ON==1:
         print("MC: Move for "+str(cm) + " new position " + str(cm*BACKWARD_TICKS_PER_CM))
         print("MC: position before "+ str(actuator1.position) + " " + str(actuator2.position))
-    backward_position(cm*BACKWARD_TICKS_PER_CM)
+    dist = backward_position(cm*BACKWARD_TICKS_PER_CM)
     time.sleep(cm*0.15)
     if LOG_ON==1:
         print("MC: position after "+ str(actuator1.position) + " " + str(actuator2.position))
-
+    return dist
 
 def forward_position_pid(position, actuator1 = actuators[0], actuator2=actuators[2], speed_sp=SPEED_FWD):
     actuator1.position_p = 1
@@ -116,7 +131,7 @@ def forward_position_pid(position, actuator1 = actuators[0], actuator2=actuators
 # OPEN - CLOSE
 ################################################
 
-def open_gripper_abs_position(position,actuator=actuators[3],speed_sp=SPEED_GRIP_OPEN,time_sp=None):
+def open_gripper_abs_position(actuator=actuators[3],speed_sp=SPEED_GRIP_OPEN,time_sp=None):
 
     if LOG_ON==1:
         print("MC: Gripper position before opening " + str(actuator.position))
@@ -129,7 +144,7 @@ def open_gripper_abs_position(position,actuator=actuators[3],speed_sp=SPEED_GRIP
         print("... and gripper position after" + str(actuator.position))
      
 
-def close_gripper_abs_position(position,actuator=actuators[3],speed_sp=SPEED_GRIP_CLOSE,time_sp=None):
+def close_gripper_abs_position(actuator=actuators[3],speed_sp=SPEED_GRIP_CLOSE,time_sp=None):
     if LOG_ON==1:
         print("MC: Gripper position before closing " + str(actuator.position))
 
@@ -223,7 +238,7 @@ def lower_gripper_position(position,actuator=actuators[1],speed_sp=SPEED_GRIP_DO
     if LOG_ON==1:
         print("... and gripper position after lowering " + str(actuator.position))
   
-def lift_gripper_abs_position(position,actuator=actuators[1],speed_sp=SPEED_GRIP_UP,time_sp=None):
+def lift_gripper_abs_position(actuator=actuators[1],speed_sp=SPEED_GRIP_UP,time_sp=None):
 
     if LOG_ON==1:
         print("MC: Gripper position before lifting " + str(actuator.position))
@@ -237,7 +252,7 @@ def lift_gripper_abs_position(position,actuator=actuators[1],speed_sp=SPEED_GRIP
         print("... and gripper position after lifting " + str(actuator.position))
 
     
-def lower_gripper_abs_position(position,actuator=actuators[1],speed_sp=SPEED_GRIP_DOWN,time_sp=None):
+def lower_gripper_abs_position(actuator=actuators[1],speed_sp=SPEED_GRIP_DOWN,time_sp=None):
 
     if LOG_ON==1:
         print("MC: Gripper position before lowering " + str(actuator.position))
@@ -251,6 +266,10 @@ def lower_gripper_abs_position(position,actuator=actuators[1],speed_sp=SPEED_GRI
     if LOG_ON==1:
         print("... and gripper position after lowering " + str(actuator.position))
   
+def lower_gripper_reset_position(actuator=actuators[1], speed_sp=SPEED_GRIP_DOWN, time_sp=None):
+    actuator.stop_action = 'hold'
+    actuator.run_to_abs_pos(position_sp=GRIP_RESET_POS,speed_sp=speed_sp)
+
     
 def lift_gripper_time(actuator=actuators[1],speed_sp=SPEED_GRIP_UP,time_sp=TIME_GRIP_UP):
     actuator.run_timed(time_sp=time_sp,speed_sp=speed_sp,stop_action='hold')
@@ -260,8 +279,14 @@ def lower_gripper_time(actuator=actuators[1],speed_sp=SPEED_GRIP_DOWN,time_sp=TI
     actuator.run_timed(time_sp=time_sp,speed_sp=speed_sp,stop_action='hold')
 
 
+def get_actuators_values():
+    print("MC: Report actuator values")
+    print("... Motor 1 "+str(actuators[0].position))
+    print("... Motor 2 "+str(actuators[2].position))
+    print("... Gripper open/close "+str(actuators[3].position))
+    print("... Gripper up/down "+str(actuators[1].position))
 
-
+"""
 # BEHAVIORS - TODO: go to a different file
 #############################################
 def move_and_grab(actuator1=actuators[0], actuator2=actuators[2], actuator3=actuators[3], actuator4=actuators[1]):
@@ -325,5 +350,8 @@ def move_towards_object( distance, angle, actuator1=actuators[0], actuator2=actu
         open_gripper_full(100)
         
 
-def mm_to_cm(mm):
-    return (mm/10)
+
+"""
+
+
+
