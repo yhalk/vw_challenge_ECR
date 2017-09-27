@@ -6,8 +6,7 @@ import time
 import config
 import ev3control.slave as slave
 import IR.IR_control as remoteControl 
-#import Sensors.sensors_simple as sensors  
-import sensors_simple_old as sensors   # RM!
+import Sensors.sensors_simple as sensors  
 import Vision.frcnn as frcnn
 import datetime 
 from Vision.vision_commands import *
