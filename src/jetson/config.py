@@ -4,8 +4,8 @@ BROKER_IP = "10.180.225.154"  # This is the IP address of your Jetson, connected
 BROKER_PORT = 1883
 
 
-topics_to_listen = ["actuators","IR"]
-qos_listen = [1,2]
+topics_to_listen = ["actuators","IR","odometry"]
+qos_listen = [1,1,1]
 topics_to_publish = ["vision"]
 qos_pub = [2]
 

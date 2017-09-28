@@ -8,6 +8,7 @@ class VisualFeedback():
         self._distance = None
         self._angle = None
         self._class_name = None
+        self._uuid = None
 
     def get_distance(self):
         return self._distance
@@ -17,7 +18,7 @@ class VisualFeedback():
 
     distance = property(get_distance,set_distance,'distance')
 
-    
+
     def get_angle(self):
         return self._angle
 
@@ -34,4 +35,13 @@ class VisualFeedback():
 
     class_name = property(get_class_name,set_class_name,'class_name')
 
+    """
+    def get_uuid(self):
+        return self._uuid
+
+    def set_uuid(self,value):
+        self._uuid = value
+
+    uuid = property(get_uuid,set_uuid,'uuid')
+    """
 

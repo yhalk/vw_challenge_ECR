@@ -1,12 +1,12 @@
 import paho.mqtt.client as mqtt
-import config as config
 import ev3dev.ev3 as ev3
 import ctypes
 import numpy as np
 import sys
 import cv2
-import IR.IR_control as remoteControl
-
+from mpu6050.mpu6050 import MPU6050
+import smbus
+from odometry import Odometry
 
 class Sensor(object):
     def __init__(self, *args, **kwargs):
@@ -15,8 +15,22 @@ class Sensor(object):
     def read(self):
         raise ValueError('This function must be implemented by ')
 
+class IMU2(Sensor):
+    def __init__(self, bus='/dev/i2c-1', address=0x68):
+        self.bus = smbus.SMBus(1)
+        self.address = address
+        self.mpu = MPU6050(self.bus,self.address, 'IMU')
+
+    def read(self):
+        '''
+            Reads the current values from the IMU using the mpu library
+            Returns:
+            tuple containing: pitch, roll, gyro x,y,z, accel x,y,z these values are scaled and NOT raw
+        '''
+        return self.mpu.read_all()
+
 class IMU(Sensor):
-    def __init__(self, path_to_shared_lib_mpu='./IOInterface/jetson/mpu/libmpu.so', bus_filename='/dev/i2c-1', bus_adresses=[0x68, 0x69]):
+    def __init__(self, path_to_shared_lib_mpu='/home/nvidia/jetson-robot/IOInterface/jetson/Sensors/mpu/libmpu.so', bus_filename='/dev/i2c-1', bus_adresses=[0x68, 0x69]):
         bus_filename = bus_filename.encode('ascii')
         self.libmpu = ctypes.cdll.LoadLibrary(path_to_shared_lib_mpu)
 
@@ -66,7 +80,6 @@ class OnBoardCamera(Sensor):
         else:
             raise ValueError('Camera not opened. Sorry this message is not really helpful, blame openCV :-) ')
         return {'onBoardCamera':frame}
-
 
 
 

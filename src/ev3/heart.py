@@ -51,7 +51,7 @@ while(1):
    publish_all(client,config.topics_to_publish)   
    client.loop_read()
    counter = counter + 1
-   #time.sleep(0.1)
+   time.sleep(0.1)
    print(listening)
    
 client.disconnect()
