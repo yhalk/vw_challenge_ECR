@@ -15,7 +15,7 @@ from communication import comm_init, get_behaviours_and_params, publish_all
 from threading import Thread
 from MotionCtrl import simple_behaviors
 
-#Subscirbe to topics for listening and publishing
+#Subscribe to topics for listening and publishing
 client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish, qos_pub=config.qos_pub, listening={}, log=0)
 
 
@@ -31,28 +31,39 @@ def get_vision_attr(listening):
     return distance, angle, class_name    
 
 
+def set_odometry_attr(dst,angle):
+    odometer = publishable_names_dict["Odometer"]
+    setattr(odometer,"dst_traveled",dst)
+    setattr(odometer,"angle_turned",angle)
+    if (dst==None and angle==None):
+       setattr(odometer,"moved",0)
+    else:
+       setattr(odometer,"moved",1)
+
+
 counter = 0
 while(1):
    print("EV3 work in progress..."+str(counter))
    kill = IR_controller()
    if kill:
       break
-   if listening!={}:
+   if ("Vision" in list(listening.keys())):
       distance, angle, class_name = get_vision_attr(listening)   
       if (distance!=None and angle!=None and class_name!=None):
          if "box" in class_name and float(distance) <= 31:
-             simple_behaviors.move_to_box_and_release(float(distance), float(angle))
+             dst_traveled,angle_turned = 5,6 #simple_behaviors.move_to_box_and_release(float(distance), float(angle))
          elif "object" in class_name and float(distance) <= 31:
-             simple_behaviors.move_and_grasp_object(float(distance), float(angle))
+             dst_traveled,angle_turned = 3,4 #simple_behaviors.move_and_grasp_object(float(distance), float(angle))
          else:
-             simple_behaviors.move_to(float(distance), float(angle))
-         
+             print(distance,angle)
+             dst_traveled,angle_turned = simple_behaviors.move_to(float(distance), float(angle))
+             
+         set_odometry_attr(dst_traveled,angle_turned)
 
    publish_all(client,config.topics_to_publish)   
    client.loop_read()
    counter = counter + 1
-   time.sleep(0.1)
-   print(listening)
+   time.sleep(2)
    
 client.disconnect()
 

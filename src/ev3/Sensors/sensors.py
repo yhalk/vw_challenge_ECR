@@ -20,7 +20,7 @@ publishable_names_dict = { "IR_control":ir,
                             config.LARGE_MOTOR_B:actuators[1],
                             config.LARGE_MOTOR_D:actuators[2],
                             config.MEDIUM_MOTOR:actuators[3],
-                            "odometer":odometer
+                            "Odometer":odometer
                           }
 
 # Make dict where key is sensor name and value

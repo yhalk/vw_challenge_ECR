@@ -126,11 +126,6 @@ def ir_to_control(channel,cmd):
 def IR_controller():
 
    (channel,cmd,valid) = get_IR_cmd(publishable_names_dict["IR_control"])
-   print(channel,cmd,valid)
-   #if (int(channel)!=2):
-   #   if (int(channel)!=3 and int(channel)!=-1):
-   #      a,b,lift,grip = ir_to_control(actuators,int(channel),int(cmd))
-   #   else:
    _,_,_,_ = ir_to_control(int(channel),int(cmd))
    if int(channel)==3:
       return 1

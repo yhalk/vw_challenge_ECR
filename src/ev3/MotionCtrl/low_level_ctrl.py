@@ -3,10 +3,6 @@ import time
 from MotionCtrl import actuators_simple as acts
 actuators = acts.actuators
 
-print(actuators[0].position_p)
-print(actuators[0].position_i)
-print(actuators[0].position_d)
-
 
 
 def mm_to_cm(mm):

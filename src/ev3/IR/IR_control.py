@@ -212,7 +212,6 @@ def get_IR_cmd(ir):
            ir_input[i] = 0
 
     channel = [i for i, e in enumerate(ir_input) if e != 0]
-    print(ir_input) 
     if channel==[]:
        return (-1,-1,0)
     

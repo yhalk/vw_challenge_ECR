@@ -65,9 +65,9 @@ def  publish_all(client,config_topics_to_publish):
                          val = getattr(publishable_names_dict[pub],property_name)
                          master.publish_cmd(client,topic,SetAttrMessage(pub, property_name, repr(val)))
          elif topic=="odometry":
-             sensor = "odometer"
+             sensor = "Odometer"
              for property_name in items_to_publish[sensor]:
-                prop = getattr(publishable_names_dict["odometer"],property_name)
+                prop = getattr(publishable_names_dict[sensor],property_name)
                 master.publish_cmd(client,topic,SetAttrMessage(sensor, property_name, repr(prop)))
 
 

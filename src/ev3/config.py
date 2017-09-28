@@ -9,6 +9,6 @@ MEDIUM_MOTOR  = "outC"
 
 topics_to_listen = ["vision"]
 qos_listen = [2]
-topics_to_publish = ["actuators","IR","odometry"]
-qos_pub = [1,1,2]
+topics_to_publish = ["odometry"]
+qos_pub = [2]
 
