@@ -9,42 +9,50 @@ import time
 import ev3control.master as master
 import ev3control.slave as slave
 from ev3control.messages import *
-from IR.IR_control import get_IR_cmd
-from MotionCtrl.actuators_simple import actuators
+from IR.ir_to_control_ev3 import IR_controller
 import datetime
-import IR.ir_to_control_ev3 as ir_ctrl
 from communication import comm_init, get_behaviours_and_params, publish_all
-
+from threading import Thread
+from MotionCtrl import simple_behaviors
 
 #Subscirbe to topics for listening and publishing
 client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish, qos_pub=config.qos_pub, listening={}, log=0)
 
 
-while (listening=={}):
-     client.loop_read()
+def get_vision_attr(listening):
+
+    distance = getattr(listening["Vision"], "distance")
+    #print("DISTANCE " +str(distance))
+    angle = getattr(listening["Vision"], "angle")
+    #print("ANGLE " +str(angle))
+    class_name = getattr(listening["Vision"], "class_name")
+    #print("CLASS " +str(class_name))
+
+    return distance, angle, class_name    
 
 
 counter = 0
 while(1):
    print("EV3 work in progress..."+str(counter))
+   kill = IR_controller()
+   if kill:
+      break
+   if listening!={}:
+      distance, angle, class_name = get_vision_attr(listening)   
+      if (distance!=None and angle!=None and class_name!=None):
+         if "box" in class_name and float(distance) <= 31:
+             simple_behaviors.move_to_box_and_release(float(distance), float(angle))
+         elif "object" in class_name and float(distance) <= 31:
+             simple_behaviors.move_and_grasp_object(float(distance), float(angle))
+         else:
+             simple_behaviors.move_to(float(distance), float(angle))
+         
 
-   (channel,cmd,valid) = get_IR_cmd(publishable_names_dict["IR_control"])
-   if (int(channel)!=2):
-      if (int(channel)!=3 and int(channel)!=-1):
-         a,b,lift,grip = ir_ctrl.ir_to_control(actuators,int(channel),int(cmd))
-      else:
-          _,_,_,_ = ir_ctrl.ir_to_control(actuators,int(channel),int(cmd))
-
-   distance = getattr(listening["Vision"], "distance") 
-   print(distance) 
-   publish_all(client,config.topics_to_publish)
-
-
-   
+   publish_all(client,config.topics_to_publish)   
    client.loop_read()
-
    counter = counter + 1
-   time.sleep(0.2)
+   time.sleep(0.1)
+   print(listening)
    
 client.disconnect()
 

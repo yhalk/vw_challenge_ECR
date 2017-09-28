@@ -5,6 +5,9 @@ from ev3control.messages import *
 import csv
 import os
 import MotionCtrl.low_level_ctrl as ctrl
+import MotionCtrl.simple_behaviors as behavior
+from IR.IR_control import get_IR_cmd
+from Sensors.sensors import publishable_names_dict
 
 
 REMOTE_NONE = 0
@@ -18,58 +21,73 @@ REMOTE_RED_DOWN_AND_BLUE_UP = 7
 REMOTE_RED_DOWN_AND_BLUE_DOWN = 8
 REMOTE_BAECON_MODE_ON = 9
 REMOTE_RED_UP_AND_RED_DOWN = 10
-REMOTE_BLUE_UP_AND_BLUE_DOWN = 11
+REMOTE_BLUE_UP_AND_BLUE_DOWN = 11    
 
-    
-def motor_control(actuators,cmd): 
+def motor_control(cmd): 
     speedA = 0
     speedB = 0
     print("motor_ctrl")
     if (cmd==REMOTE_RED_UP):
-        ctrl.move_towards_object(actuators[0], actuators[2], actuators[3],actuators[1], 310, 15) 
+        #ctrl.move_towards_object(310, 15) 
+        #ctrl.turn_left_deg(90)
+        #behavior.move_to_and_grab_2()
+        behavior.move_to_box_and_release(310, 15)
     elif (cmd==REMOTE_BLUE_UP):
         #ctrl.move_and_grab(actuators[0], actuators[2], actuators[3], actuators[1])
-        ctrl.forward_cm(actuators[0], actuators[2],10)
+        ctrl.forward_cm(50)#position_pid(10, 0, 0, 0)
     elif (cmd==REMOTE_BLUE_DOWN):
-        ctrl.backward_cm(actuators[0], actuators[2], 10)
+        ctrl.backward_cm(50)
     elif (cmd==REMOTE_RED_DOWN):
-        ctrl.turn_right_deg(actuators[0], actuators[2], 90)
         #ctrl.turn_deg_position(actuators[0], actuators[2], 15)
+        ctrl.turn_right_deg(90)
     elif (cmd==REMOTE_RED_UP_AND_BLUE_UP):
-        ctrl.forward_1_step_position(actuators[2],actuators[0],100)
+        ctrl.forward_position(100)
     elif (cmd==REMOTE_RED_DOWN_AND_BLUE_DOWN):
-        ctrl.backward_1_step_position(actuators[2],actuators[0],100)
+        ctrl.backward_position(100)
     elif (cmd==REMOTE_BAECON_MODE_ON):
-        ctrl.stop_actuator(actuators=[actuators[0],actuators[2]],stop_action='brake')
+        ctrl.stop_actuator(stop_action='brake')
     else:
         print("Pass motors")
         pass
     return speedA,speedB,0,0
    
      
-def gripper_control(actuators,cmd):
+def gripper_control(cmd):
     speed_lift = 0
     speed_grip = 0
     print("gripper")
     if (cmd==REMOTE_RED_UP):
-        ctrl.lift_gripper_position(actuator=actuators[1],position=100)
+        ctrl.lift_gripper_abs_position()
     elif (cmd==REMOTE_RED_DOWN):
-        ctrl.lower_gripper_position(actuator=actuators[1],position=30)
+        ctrl.lower_gripper_abs_position()
     elif (cmd==REMOTE_BLUE_UP):
         #ctrl.open_gripper_full(actuators[3], position=100)
-        ctrl.open_gripper_position(actuators[3],position=100)
+        ctrl.open_gripper_abs_position()
     elif (cmd==REMOTE_BLUE_DOWN):
-        #ctrl.close_gripper_full(actuators[3], position=70)
-        ctrl.close_gripper_position(actuators[3],position=50)
+        #ctrl.close_gripper_full(position=70)
+        ctrl.close_gripper_abs_position()
     elif (cmd==REMOTE_BAECON_MODE_ON):
-        ctrl.stop_actuator(actuators=[actuators[3],actuators[1]],stop_action='brake')
+        ctrl.stop_actuator(stop_action='brake')
     else:
         print("Pass gripper")
         pass
     return 0,0,speed_lift,speed_grip
     
+def calibration(cmd):
+    print("Calibrating!")
+    if (cmd==REMOTE_RED_UP):
+        ctrl.get_actuators_values() 
+    elif (cmd==REMOTE_BLUE_UP):
+        ctrl.open_gripper_position(70)
+    elif (cmd==REMOTE_BLUE_DOWN):
+        ctrl.close_gripper_position(70)
+    else:
+        print("Pass calibration")
+        pass
+    return 0,0,0,0
+    
 
-def emergency(actuators,cmd):
+def emergency(cmd):
     
     sA = None
     sB = None
@@ -77,7 +95,7 @@ def emergency(actuators,cmd):
     sD = None
     print("emergency")
     if (cmd==REMOTE_BAECON_MODE_ON):
-        ctrl.stop_actuator(actuators=actuators,stop_action='brake')
+        ctrl.stop_actuator(stop_action='brake')
         sA = 0
         sB = 0
         sC = 0
@@ -91,16 +109,30 @@ def emergency(actuators,cmd):
 
 call_channel = { 0 : motor_control,
                  1 : gripper_control,
+                 2 : calibration,
                  3 : emergency
                }
 
 
-def ir_to_control(actuators,channel,cmd):
-
-
+def ir_to_control(channel,cmd):
     #Return speed_sp of motor A,B,C,D - 0 if stopped
     if channel!=-1:
-       return call_channel[channel](actuators,cmd)    
+       return call_channel[channel](cmd)    
     else:
        return None,None,None,None
-    
+   
+
+
+def IR_controller():
+
+   (channel,cmd,valid) = get_IR_cmd(publishable_names_dict["IR_control"])
+   print(channel,cmd,valid)
+   #if (int(channel)!=2):
+   #   if (int(channel)!=3 and int(channel)!=-1):
+   #      a,b,lift,grip = ir_to_control(actuators,int(channel),int(cmd))
+   #   else:
+   _,_,_,_ = ir_to_control(int(channel),int(cmd))
+   if int(channel)==3:
+      return 1
+   return 0
+ 

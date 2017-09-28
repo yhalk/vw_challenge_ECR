@@ -1,6 +1,9 @@
+import ev3control.master as master
+from ev3control.messages import *
+
 class Odometry():
 
-      def __init__(self):  
+      def __init__(self):
           self._dst_traveled = None
           self._angle_turned = None
 
