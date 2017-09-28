@@ -55,7 +55,7 @@ def grab_camera_image(camera_sensor):
 
 def addVisionDevices(client,topic,qos=2):
     
-    master.publish_cmd(client, topic, AddDeviceMessage('Vision', "VisualFeedback()"),delay=1,qos=qos)
+    return master.publish_cmd(client, topic, AddDeviceMessage('Vision', "VisualFeedback()"),delay=1,qos=qos)
 
 
 def get_bbox(key_tuple):
@@ -92,10 +92,10 @@ def analyse_image(predictor,img):
 
 def publish_vision_info(client,topic,info):
 #Use same device name as in vision_commands.py
-    master.publish_cmd(client,topic, SetAttrMessage('Vision','class_name',repr(info[0])),qos=2)  
-    master.publish_cmd(client,topic, SetAttrMessage('Vision','distance',repr(info[1])),qos=2) #do we care about quality of service here??? probably not,want speed
-    master.publish_cmd(client,topic, SetAttrMessage('Vision','angle',repr(info[2])),qos=2)
-    
+    mid1 = master.publish_cmd(client,topic, SetAttrMessage('Vision','class_name',repr(info[0])),qos=2)  
+    mid2 = master.publish_cmd(client,topic, SetAttrMessage('Vision','distance',repr(info[1])),qos=2) #do we care about quality of service here??? probably not,want speed
+    mid3 = master.publish_cmd(client,topic, SetAttrMessage('Vision','angle',repr(info[2])),qos=2)
+    return mid1,mid2,mid3
 
 def save_image(img_name,img,info):
 

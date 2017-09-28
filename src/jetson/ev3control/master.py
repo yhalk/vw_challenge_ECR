@@ -17,10 +17,10 @@ def publish_cmd(client, topic, message, delay=.2, qos=2):
 
     :message: should be one of the types defined in messages.py
     """
-    client.publish(topic=topic, payload=repr(message),qos=qos)
+    sts,mid = client.publish(topic=topic, payload=repr(message),qos=qos)
     # If we chain multiple publish commands, we need delays between them
     time.sleep(delay)
-
+    return mid
 
 if __name__ == '__main__':
     from messages import *

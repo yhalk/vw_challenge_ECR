@@ -1,1 +1,1 @@
-{"sleep": {"t": 0.5}, "explore": {"exploration_angle": [0, 90, 90], "param_dependent": "", "exploration_dst": [30, 0, 30], "phase": -32}}
+{"sleep": {"t": 1}, "explore": {"phase": 1, "exploration_dst": [200, 0, 200, 0, 200, 0, 200], "param_dependent": "", "exploration_angle": [0, 90, 0, 90, 0, 90, 0]}}

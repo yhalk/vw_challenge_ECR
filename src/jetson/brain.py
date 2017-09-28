@@ -20,20 +20,26 @@ from hello_world import *
 #Subscirbe to topics for listening and publishing
 client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish ,qos_pub=config.qos_pub, listening={}, log=0)
 
+while ("Odometer" not in list(listening.keys())):
+    client.loop()
+print(listening)
+
+addVisionDevices(client,'vision',qos=2)
+
 #Create object detector
 #predictor = frcnn.ObjectPredictor()
 
 print("Client is set up, will start listening now!")
 
 
+
 camera_sensor = None #sensors.camera
 
 behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
 while(1):
-   if ("Odometer" in list(listening.keys())):
 
-       print(getattr(listening['Odometer'],'dst_traveled'))
-       print(getattr(listening['Odometer'],'angle_turned')) 
+       getattr(listening['Odometer'],'dst_traveled')
+       getattr(listening['Odometer'],'angle_turned')
        
        behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
        if behaviours!={}:
@@ -46,12 +52,13 @@ while(1):
                  elif ("param_dependent" in list(params[i].keys())):
                     eval(behaviours[i])(params[i],config.params_json,client)
                  else:
-                    eval(behaviours[i])(params[i],client)
+                    while getattr(listening['Odometer'],'moved')==0:
+	                    eval(behaviours[i])(params[i],client)
+                   
        
-
-   #Start reading json for behaviour execution
-   client.loop_read()
-   eval(behaviours["sleep"])(params["sleep"])
+       #Start reading json for behaviour execution
+       client.loop_read()
+       eval(behaviours["sleep"])(params["sleep"])
 
  
 client.loop_stop()

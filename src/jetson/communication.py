@@ -21,6 +21,11 @@ def get_behaviours_and_params(behaviour_json, params_json):
 def on_log(client, userdata, level, buf):
    print("Jetson log: ",buf)
 
+
+def on_publish(client,userdata,mid):
+    print(str(mid)+" delivered")
+
+
 def comm_init(topics_to_listen=[], qos_listen=None, topics_to_publish=[] ,qos_pub=None, listening=None, log=1):
 
    listening = {}
@@ -28,6 +33,7 @@ def comm_init(topics_to_listen=[], qos_listen=None, topics_to_publish=[] ,qos_pu
    client = mqtt.Client()
    client.connect(config.BROKER_IP, config.BROKER_PORT, keepalive=60)
    client.on_message = partial(slave.process_message, listening)
+   #client.on_publish = on_publish
    #Subscribe to topics we get values from
    for top in range(len(topics_to_listen)):
       client.subscribe(topics_to_listen[top],qos=qos_listen[top])            
