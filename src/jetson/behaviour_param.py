@@ -1,3 +1,1 @@
-{"sleep":{"t":0.5},
-  "spot_box":{"camera":"","box_identifier":"box_1"}
-}
+{"sleep": {"t": 0.5}, "explore": {"exploration_angle": [0, 90, 90], "param_dependent": "", "exploration_dst": [30, 0, 30], "phase": -32}}

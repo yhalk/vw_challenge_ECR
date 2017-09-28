@@ -1,6 +1,6 @@
 import math
 
-import mpu6050.i2cutils as I2CUtils
+import Sensors.mpu6050.i2cutils as I2CUtils
 
 class MPU6050(object):
     '''

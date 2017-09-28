@@ -6,14 +6,14 @@ import time
 import config
 import ev3control.slave as slave
 import IR.IR_control as remoteControl 
-#import Sensors.sensors_simple as sensors  
-import sensors_simple_old as sensors   # RM!
-import Vision.frcnn as frcnn
+import Sensors.sensors_simple as sensors  
+#import Vision.frcnn as frcnn
 import datetime 
 from Vision.vision_commands import *
 from communication import comm_init,get_behaviours_and_params
 from behaviours.box_detection.detect_box import detect_box
 from behaviours.timing import timing
+from behaviours.explore.explore import explore
 from hello_world import *
 
 
@@ -21,32 +21,38 @@ from hello_world import *
 client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish ,qos_pub=config.qos_pub, listening={}, log=0)
 
 #Create object detector
-predictor = frcnn.ObjectPredictor()
+#predictor = frcnn.ObjectPredictor()
 
 print("Client is set up, will start listening now!")
 
 
-camera_sensor = sensors.camera
+camera_sensor = None #sensors.camera
 
 behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
 while(1):
-   if (listening!={}):    
+   if ("Odometer" in list(listening.keys())):
+
+       print(getattr(listening['Odometer'],'dst_traveled'))
+       print(getattr(listening['Odometer'],'angle_turned')) 
+       
        behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
        if behaviours!={}:
           #If behaviour needs image, make sure image is passed as argument to behaviour
-          image = grab_camera_image(camera_sensor)
+          #image = grab_camera_image(camera_sensor)
           for i in list(behaviours.keys()):
               if (i!="sleep"):
                  if ("camera" in list(params[i].keys())):
                     eval(behaviours[i])(params[i],image,client)
+                 elif ("param_dependent" in list(params[i].keys())):
+                    eval(behaviours[i])(params[i],config.params_json,client)
                  else:
                     eval(behaviours[i])(params[i],client)
-      
+       
+
    #Start reading json for behaviour execution
    client.loop_read()
    eval(behaviours["sleep"])(params["sleep"])
 
-   #time.sleep(0.5)
  
 client.loop_stop()
 

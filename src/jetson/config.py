@@ -5,7 +5,7 @@ BROKER_PORT = 1883
 
 
 topics_to_listen = ["actuators","IR","odometry"]
-qos_listen = [1,1,1]
+qos_listen = [1,1,2]
 topics_to_publish = ["vision"]
 qos_pub = [2]
 

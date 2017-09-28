@@ -92,9 +92,9 @@ def analyse_image(predictor,img):
 
 def publish_vision_info(client,topic,info):
 #Use same device name as in vision_commands.py
-    master.publish_cmd(client,topic, SetAttrMessage('Vision','class_name',repr(info[0])),qos=0)  
-    master.publish_cmd(client,topic, SetAttrMessage('Vision','distance',repr(info[1])),qos=0) #do we care about quality of service here??? probably not,want speed
-    master.publish_cmd(client,topic, SetAttrMessage('Vision','angle',repr(info[2])),qos=0)
+    master.publish_cmd(client,topic, SetAttrMessage('Vision','class_name',repr(info[0])),qos=2)  
+    master.publish_cmd(client,topic, SetAttrMessage('Vision','distance',repr(info[1])),qos=2) #do we care about quality of service here??? probably not,want speed
+    master.publish_cmd(client,topic, SetAttrMessage('Vision','angle',repr(info[2])),qos=2)
     
 
 def save_image(img_name,img,info):
