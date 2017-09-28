@@ -1,2 +1,2 @@
-{"spot_box":"detect_box",
-"sleep":"timing"}
+{"sleep":"timing",
+"explore":"explore"}

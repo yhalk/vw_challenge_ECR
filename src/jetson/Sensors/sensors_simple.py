@@ -4,9 +4,11 @@ import ctypes
 import numpy as np
 import sys
 import cv2
-from mpu6050.mpu6050 import MPU6050
+from Sensors.mpu6050.mpu6050 import MPU6050
 import smbus
-from odometry import Odometry
+from Sensors.odometry import Odometry
+import sys, serial
+from serial.tools import list_ports
 
 class Sensor(object):
     def __init__(self, *args, **kwargs):
@@ -14,6 +16,30 @@ class Sensor(object):
 
     def read(self):
         raise ValueError('This function must be implemented by ')
+
+class IR_teensy(Sensor):
+    def __init__(self):
+        self.ports = list(list_ports.comports()) # get all the connected serial devices
+        self.serial_port = serial.Serial('/dev/'+self.ports[0].name) # connect to the first
+
+    def debug(self):
+        '''
+           Use if cannot connect to the port
+           This function will print all found serial devices and prints the name and index of the port 
+        '''
+        for i, item in enumerate(self.ports):
+            print(i + ' : ' + item.name)
+
+    def read(self):
+        '''
+           Reads the current value from the teensy
+           Returns:
+            Distance in cm
+        '''
+        measurement = self.serial_port.readline() # read the measurement
+        measurement = measurement.decode('utf-8').split('\r') # change it to utf and split it on funny characters
+
+        return measurement[0] # only return the actual measurment
 
 class IMU2(Sensor):
     def __init__(self, bus='/dev/i2c-1', address=0x68):
@@ -84,5 +110,5 @@ class OnBoardCamera(Sensor):
 
 
 #Create camera sensor object
-camera = OnBoardCamera()
+#camera = OnBoardCamera()
 

@@ -66,7 +66,7 @@ def process_message(objects: dict, client, userdata, msg):
     elif isinstance(message, AddDeviceMessage):
         #print("adding object!")
         objects[message.obj_name] = eval(message.obj_init)
-        print("new objects", objects)
+        #print("new objects", objects)
     else:
         print("not a valid message type!")
 
