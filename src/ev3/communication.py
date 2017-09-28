@@ -7,6 +7,7 @@ import ev3control.master as master
 import ev3control.slave as slave
 from ev3control.messages import *
 from MotionCtrl.actuators_simple import addActuatorDevices
+from Sensors.odometry_ev3 import addOdometryDevices
 
 def get_behaviours_and_params(behaviour_json, params_json):
 
@@ -40,7 +41,8 @@ def comm_init(topics_to_listen=[], qos_listen=None, topics_to_publish=[] ,qos_pu
          addSensorDevices(client,topics_to_publish[top],qos=qos_pub[top])
       elif topics_to_publish[top]=="actuators":
          addActuatorDevices(client,topics_to_publish[top],qos=qos_pub[top])
-
+      elif topics_to_publish[top]=="odometry":
+         addOdometryDevices(client,topics_to_publish[top],qos=qos_pub[top])
 
    if log==1:
       client.on_log = on_log

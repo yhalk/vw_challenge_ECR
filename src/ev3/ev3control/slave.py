@@ -57,14 +57,14 @@ def process_message(objects: dict, client, userdata, msg):
     if isinstance(message, ShowAttrMessage):
         print(print_property(objects, *message))
     elif isinstance(message, SetAttrMessage):
-        print("Value before: ", print_property(objects, message.obj_name, message.attr_name))
+        #print("Value before: ", print_property(objects, message.obj_name, message.attr_name))
         set_property(objects, *message)
-        print("Value after:", print_property(objects, message.obj_name, message.attr_name))
+        #print("Value after:", print_property(objects, message.obj_name, message.attr_name))
     elif isinstance(message, RunMethodMessage):
-        print('running method')
+        #print('running method')
         run_method(objects, *message)
     elif isinstance(message, AddDeviceMessage):
-        print("adding object!")
+        #print("adding object!")
         objects[message.obj_name] = eval(message.obj_init)
         print("new objects", objects)
     else:

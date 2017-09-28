@@ -64,7 +64,7 @@ def transform_img_to_robot_level(cam_dist, cam_angle):
     x_robot = CAM_ROBOT_DISTANCE - x_cam
     y_robot = math.cos(cam_angle) * cam_dist
     robot_dist = math.sqrt(x_robot*x_robot + y_robot*y_robot)
-    robot_angle = math.atan(y_robot,x_robot) 
+    robot_angle = math.atan2(y_robot,x_robot) 
     return (robot_dist, rad_to_deg(robot_angle))
     print(".. and translated in distance " + str(robot_dist) + " and angle " + str(robot_angle)) 
 

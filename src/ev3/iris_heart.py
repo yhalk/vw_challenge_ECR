@@ -28,11 +28,7 @@ while(1):
    print("EV3 work in progress..."+str(counter))
 
    (channel,cmd,valid) = get_IR_cmd(publishable_names_dict["IR_control"])
-   if (int(channel)!=2):
-      if (int(channel)!=3 and int(channel)!=-1):
-         a,b,lift,grip = ir_ctrl.ir_to_control(int(channel),int(cmd))
-      else:
-          _,_,_,_ = ir_ctrl.ir_to_control(int(channel),int(cmd))
+   _,_,_,_ = ir_ctrl.ir_to_control(int(channel),int(cmd))
 
    
    publish_all(client,config.topics_to_publish)
