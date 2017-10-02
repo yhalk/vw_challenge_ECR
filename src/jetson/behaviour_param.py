@@ -1,1 +1,1 @@
-{"sleep": {"t": 1}, "explore": {"phase": 1, "exploration_dst": [200, 0, 200, 0, 200, 0, 200], "param_dependent": "", "exploration_angle": [0, 90, 0, 90, 0, 90, 0]}}
+{"stateM": {"object_class":"blue","box_id":1},"sleep": {"t": 1}, "spot_box": {"camera": "", "box_identifier": "box_1"}}

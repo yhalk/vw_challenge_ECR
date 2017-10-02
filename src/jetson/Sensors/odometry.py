@@ -4,6 +4,7 @@ class Odometry():
           self._dst_traveled = None
           self._angle_turned = None
           self._moved = None
+          self._grasp = None
 
       def get_dst_traveled(self):
           return self._dst_traveled
@@ -30,4 +31,10 @@ class Odometry():
 
       moved = property(get_moved,set_moved,'moved')
 
+      def get_grasp(self):
+          return self._grasp
 
+      def set_grasp(self,value):
+          self._grasp = value
+
+      grasp = property(get_grasp,set_grasp,'grasp')

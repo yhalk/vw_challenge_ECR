@@ -18,8 +18,20 @@ import math
 import keras_frcnn.resnet as nn
 import datetime
 
+import uuid
+from PIL import Image
+#sys.path.append("/home/nvidia/YAD2K_small")
+#sys.path.append("/home/nvidia/YAD2K_small/models")
+#from yad2k_4_robot import *
+#import yad2k_4_robot
+
 class ObjectPredictor:
         #os.environ['CUDA_VISIBLE_DEVICES'] = ''
+        show_image = False
+
+        KNOWN_OBJECTS = ["blue", "green", "red", "white"]
+
+        SHORT_TERM_MEMORY =  []
 
         def ret_detected_objects(detected_objects):
             return detected_objects
@@ -136,9 +148,9 @@ class ObjectPredictor:
               self.class_mapping['bg'] = len(self.class_mapping)
 
           self.class_mapping = {v: k for k, v in self.class_mapping.items()}
-          print(self.class_mapping)
+          #print(self.class_mapping)
           class_to_color = {self.class_mapping[v]: np.random.randint(0, 255, 3) for v in self.class_mapping}
-          self.C.num_rois = int(128) #32 num of rois
+          self.C.num_rois = int(4) #32 num of rois
 
           img_input = Input(shape=self.input_shape_img)
           roi_input = Input(shape=(self.C.num_rois, 4))
@@ -163,11 +175,25 @@ class ObjectPredictor:
           self.model_rpn.compile(optimizer='sgd', loss='mse')
           model_classifier.compile(optimizer='sgd', loss='mse')
 
+        def detect_known_objects_old(self, img):
+            img = Image.fromarray(img)
+            img = img.resize((416,555))
+            img = img.crop((0,555-416, 416, 555))
+            scale = 0.8671875
+            in_data = np.array([np.asarray(img, dtype=np.uint8)])
+            #temp = yad2k_4_robot.Lego_detector()
+            #temp.detect_known_objects(img)
+            yolo_detector = yad2k_4_robot.YOLO()
+            # yolo_detector.detect_boxes(in_data)
+            yolo_detector.detect_known_objects(in_data)
 
         #for idx, img_name in enumerate(sorted(os.listdir(img_path))):
         def detect_known_objects(self, img):
                 print ("HELLLOOOOOO")
-                img = self.image_resize(img, height=int(img.shape[0]/3.0))
+                #img = self.image_resize(img, height=int(img.shape[0]/3.0))
+                #img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+                #img_yuv[:,:,0] = cv2.equalizeHist(img_yuv[:,:,0])
+                #img=cv2.cvtColor(img_yuv,cv2.COLOR_YUV2BGR)
                 X, ratio = self.format_img(img, self.C)
                 if K.image_dim_ordering() == 'tf':
                    X = np.transpose(X, (0, 2, 3, 1))
@@ -180,7 +206,7 @@ class ObjectPredictor:
                 R = roi_helpers.rpn_to_roi(Y1, Y2, self.C, K.image_dim_ordering(), overlap_thresh=0.7)
                 b = datetime.datetime.now()
                 delta = b - a
-                print("roi_helpers.rpn_to_roi took:", int(delta.total_seconds() * 1000)) # milliseconds
+                #print("roi_helpers.rpn_to_roi took:", int(delta.total_seconds() * 1000)) # milliseconds
                 #print R
                 #for i in R:
                 #    cv2.rectangle(img,(i[0],i[1]),(i[2],i[3]),(0,255,0),3)
@@ -204,13 +230,13 @@ class ObjectPredictor:
                                 ROIs_padded[:, :curr_shape[1], :] = ROIs
                                 ROIs_padded[0, curr_shape[1]:, :] = ROIs[0, 0, :]
                                 ROIs = ROIs_padded
-                                print("ROIs shape", np.array(ROIs).shape)
-                                print("F", np.array(F).shape)
+                                #print("ROIs shape", np.array(ROIs).shape)
+                                #print("F", np.array(F).shape)
                         a = datetime.datetime.now()
                         [P_cls, P_regr] = self.model_classifier_only.predict([F, ROIs])
                         b = datetime.datetime.now()
                         delta = b - a
-                        print("prediction of roi took: :", int(delta.total_seconds() * 1000)) # milliseconds
+                        #print("prediction of roi took: :", int(delta.total_seconds() * 1000)) # milliseconds
                         #print P_cls, P_regr
                         #print P_cls.shape, P_regr.shape
                         for ii in range(P_cls.shape[1]):
@@ -238,44 +264,86 @@ class ObjectPredictor:
                                 bboxes[cls_name].append([self.C.rpn_stride*x, self.C.rpn_stride*y, self.C.rpn_stride*(x+w), self.C.rpn_stride*(y+h)])
                                 probs[cls_name].append(np.max(P_cls[0, ii, :]))
                
-                all_dets = []
-	
+                
+
+
+
                 detected_objects = []
+    
                 for key in bboxes:
-                        key_bbox = []
-                        bbox = np.array(bboxes[key])
-                        new_boxes, new_probs = roi_helpers.non_max_suppression_fast(bbox, np.array(probs[key]), overlap_thresh=0.5)
-                        for jk in range(new_boxes.shape[0]):
-                                (x1, y1, x2, y2) = new_boxes[jk,:]
-                                (real_x1, real_y1, real_x2, real_y2) = self.get_real_coordinates(ratio, x1, y1, x2, y2)
-                                key_bbox.append((real_x1, real_y1, real_x2, real_y2))
-	                        #print ("object width", self.distance([real_x1,real_y1], [real_x2,real_y1]))
-	                        #print "drawing detected rect at:", (real_x1, real_y1), (real_x2, real_y2)
-                                #cv2.rectangle(img,(real_x1, real_y1), (real_x2, real_y2), (int(class_to_color[key][0]), int(class_to_color[key][1]), int(class_to_color[key][2])),5)
-	   
-                                #textLabel = '{}: {}'.format(key,int(100*new_probs[jk]))
-	                        #all_dets.append((key,100*new_probs[jk]))
+                    bbox = np.array(bboxes[key])
+    
+                    new_boxes, new_probs = roi_helpers.non_max_suppression_fast(bbox, np.array(probs[key]), overlap_thresh=0.5)
+                    for jk in range(new_boxes.shape[0]):
+                        (x1, y1, x2, y2) = new_boxes[jk,:]
+    
+                        (real_x1, real_y1, real_x2, real_y2) = self.get_real_coordinates(ratio, x1, y1, x2, y2)
+                                    #print "drawing detected rect at:", (real_x1, real_y1), (real_x2, real_y2)
+                            #cv2.rectangle(img,(real_x1, real_y1), (real_x2, real_y2), (int(class_to_color[key][0]), int(class_to_color[key][1]), int(class_to_color[key][2])),5)
+    
+                        #textLabel = '{}: {}'.format(key,int(100*new_probs[jk]))
+                        #all_dets.append((key,100*new_probs[jk]))
+    
+                        #(retval,baseLine) = cv2.getTextSize(textLabel,cv2.FONT_HERSHEY_COMPLEX,1,1)
+                        #textOrg = (real_x1-20, real_y1-20)
+    
+                        #cv2.rectangle(img, (textOrg[0] - 5, textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (0, 0, 0), 2)
+                        #cv2.rectangle(img, (textOrg[0] -5,textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (255, 255, 255), -1)
+                        #cv2.putText(img, textLabel, textOrg, cv2.FONT_HERSHEY_DUPLEX, 0.3, (0, 0, 0), 1)
+                        height, width, channels = img.shape
+                        #FOV horizontal = 62 degrees   (from 90 on right to 33 on left)
+                        angle_between_robot_centre_and_detected_object = self.angle_between((real_x1,(real_y1+real_y2)/2.0), (width/2.0,0))-62
+                        focal_length_mm = 1.0
+                        average_real_object_height_mm = 1.0
+                        image_height_px = height
+                        object_height_px = self.distance([real_x1,real_y1], [real_x1,real_y2])
+                        sensor_height_mm = 314.2
+                        distance_between_robot_centre_and_detected_object = (51.525 * 123) / self.distance([real_x1,real_y1], [real_x2,real_y1])  #(focal_length_mm * average_real_object_height_mm * image_height_px) / float(object_height_px * sensor_height_mm)
+                        distance_between_robot_centre_and_detected_object = distance_between_robot_centre_and_detected_object * 1.5
 
-                                #(retval,baseLine) = cv2.getTextSize(textLabel,cv2.FONT_HERSHEY_COMPLEX,1,1)
-                                #textOrg = (real_x1-20, real_y1-20)
+                        detected_objects.append((key, "", real_x1, real_y1, real_x2, real_y2, distance_between_robot_centre_and_detected_object, angle_between_robot_centre_and_detected_object))
 
-                                #cv2.rectangle(img, (textOrg[0] - 5, textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (0, 0, 0), 2)
-                                #cv2.rectangle(img, (textOrg[0] -5,textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (255, 255, 255), -1)
-	                        #cv2.putText(img, textLabel, textOrg, cv2.FONT_HERSHEY_DUPLEX, 0.3, (0, 0, 0), 1)
-                                height, width, channels = img.shape
-	                        #FOV horizontal = 62 degrees   (from 90 on right to 33 on left)
-                                angle_between_robot_centre_and_detected_object = self.angle_between((real_x1,(real_y1+real_y2)/2.0), (width/2.0,0))-62
-                                focal_length_mm = 1.0
-                                average_real_object_height_mm = 1.0
-                                image_height_px = height
-                                object_height_px = self.distance([real_x1,real_y1], [real_x1,real_y2])      
-                                sensor_height_mm = 314.2
-                                distance_between_robot_centre_and_detected_object = (51.525 * 123) / self.distance([real_x1,real_y1], [real_x2,real_y1])  #(focal_length_mm * average_real_object_height_mm * image_height_px) / float(object_height_px * sensor_height_mm)
-                                distance_between_robot_centre_and_detected_object = distance_between_robot_centre_and_detected_object * 1.5
-	
-                                detected_objects.append((key, key_bbox, distance_between_robot_centre_and_detected_object, angle_between_robot_centre_and_detected_object))
-	
-                #print(detected_objects)
-                #self.ret_detected_objects(detected_objects)
-                return detected_objects
+                
+                print ("detected objects", len(detected_objects))
+                temporary_memory = []
+                for image_item in detected_objects:
+                    seen_item_centroid = (image_item[2] + self.distance((image_item[2],image_item[3]), (image_item[4], image_item[3])) / 2.0, image_item[4] + self.distance((image_item[2],image_item[3]), (image_item[2], image_item[5])) / 2.0)
+
+                    tracking_uuid = None
+            
+                    #print ("items in memory", len(self.SHORT_TERM_MEMORY))
+                    for memory_item in self.SHORT_TERM_MEMORY:
+                        memory_centroid = (memory_item[2] + self.distance((memory_item[2],memory_item[3]), (memory_item[4], memory_item[3])) / 2.0, memory_item[4] + self.distance((memory_item[2],memory_item[3]), (memory_item[2], memory_item[5])) / 2.0)
+                        #print ("distance", self.distance(seen_item_centroid, memory_centroid))
+                        if self.distance(seen_item_centroid, memory_centroid) < self.distance([image_item[2],image_item[3]], [image_item[4],image_item[5]]) and image_item[0]==memory_item[0]:
+                            tracking_uuid = memory_item[1]
+                            continue
+
+                    if tracking_uuid != None:
+                        temporary_memory.append((self.KNOWN_OBJECTS[int(image_item[0])], tracking_uuid, image_item[2],image_item[3], image_item[4],image_item[5], image_item[6], image_item[7]))
+                    else:
+                        temporary_memory.append((self.KNOWN_OBJECTS[int(image_item[0])], uuid.uuid1(), image_item[2],image_item[3], image_item[4],image_item[5], image_item[6], image_item[7]))
+                    #print ("temp memory items", len(temporary_memory))
+                    
+                    if self.show_image:
+                        for item in temporary_memory:
+                            cv2.rectangle(img,(item[2], item[3]), (item[4], item[5]), (0, 0, 0),5)
+                            textLabel = '{}: {}'.format(item[0], item[1])
+                            (retval,baseLine) = cv2.getTextSize(textLabel,cv2.FONT_HERSHEY_COMPLEX,1,1)
+                            textOrg = (image_item[2]-20, image_item[3]-20)
+                            cv2.rectangle(img, (textOrg[0] - 5, textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (0, 0, 0), 2)
+                            cv2.rectangle(img, (textOrg[0] -5,textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (255, 255, 255), -1)
+                            cv2.putText(img, textLabel, textOrg, cv2.FONT_HERSHEY_DUPLEX, 0.3, (0, 0, 0), 1)
+                             
+                self.SHORT_TERM_MEMORY = temporary_memory
+                if self.show_image:
+                    cv2.imshow('image', img)
+                    cv2.waitKey(3000)
+                    #time.sleep(1)
+                    #cv2.destroyAllWindows()
+
+
+
+
+                return self.SHORT_TERM_MEMORY
                 

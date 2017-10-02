@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt
 import config as config
 import json
 import ev3control.slave as slave
+import time 
 
 def get_behaviours_and_params(behaviour_json, params_json):
 
@@ -36,11 +37,18 @@ def comm_init(topics_to_listen=[], qos_listen=None, topics_to_publish=[] ,qos_pu
    #client.on_publish = on_publish
    #Subscribe to topics we get values from
    for top in range(len(topics_to_listen)):
-      client.subscribe(topics_to_listen[top],qos=qos_listen[top])            
+         client.subscribe(topics_to_listen[top],qos=qos_listen[top])            
    #Subscribe to topics we send values to
    for top in range(len(topics_to_publish)):
-      if topics_to_publish[top]=="vision":
-         addVisionDevices(client,topics_to_publish[top],qos=qos_pub[top])
+         if topics_to_publish[top]=="vision":
+            addVisionDevices(client,topics_to_publish[top],qos=qos_pub[top])
+   while (listening=={}):
+         print("Waiting to connect...")
+         for top in range(len(topics_to_publish)):
+             if topics_to_publish[top]=="vision":
+                addVisionDevices(client,topics_to_publish[top],qos=qos_pub[top])
+         client.loop()
+         time.sleep(1)
 
    if log==1:
       client.on_log = on_log
