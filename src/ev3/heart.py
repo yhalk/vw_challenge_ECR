@@ -31,14 +31,16 @@ def get_vision_attr(listening):
     return distance, angle, class_name    
 
 
-def set_odometry_attr(dst,angle):
+def set_odometry_attr(dst,angle,grasp):
     odometer = publishable_names_dict["Odometer"]
     setattr(odometer,"dst_traveled",dst)
     setattr(odometer,"angle_turned",angle)
+    setattr(odometer,"grasp",grasp)
     if (dst==None and angle==None):
        setattr(odometer,"moved",0)
-    else:
+    elif (abs(dst-0.0)>=-0.00000001):
        setattr(odometer,"moved",1)
+       print("set moved")
 
 
 counter = 0
@@ -48,22 +50,23 @@ while(1):
    if kill:
       break
    print(listening)
+   client.loop()
    if ("Vision" in list(listening.keys())):
       distance, angle, class_name = get_vision_attr(listening)   
-      if (distance!=None and angle!=None and class_name!=None):
-         if "box" in class_name and float(distance) <= 31:
-             dst_traveled,angle_turned = simple_behaviors.move_to_box_and_release(float(distance), float(angle))
-         elif "object" in class_name and float(distance) <= 31:
-             dst_traveled,angle_turned = simple_behaviors.move_and_grasp_object(float(distance), float(angle))
+      print(distance, angle, class_name)
+      if (distance!=None and angle!=None):
+         if "box" in class_name:
+             dst_traveled,angle_turned,grasp = simple_behaviors.move_to_box_and_release(float(distance), float(angle))
+         elif "object" in class_name:
+             dst_traveled,angle_turned,grasp = simple_behaviors.move_and_grasp_object(float(distance), float(angle))
          else:
-             dst_traveled,angle_turned = simple_behaviors.move_to(float(distance), float(angle))
+             dst_traveled,angle_turned,grasp = simple_behaviors.move_to(float(distance), float(angle))
              
-         set_odometry_attr(dst_traveled,angle_turned)
+         set_odometry_attr(dst_traveled,angle_turned,grasp)
 
    publish_all(client,config.topics_to_publish)   
-   client.loop_read()
    counter = counter + 1
-   time.sleep(2)
+   time.sleep(1)
    
 client.disconnect()
 

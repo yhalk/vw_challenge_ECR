@@ -12,7 +12,7 @@ def start_master(host):
     return client
 
 
-def publish_cmd(client, topic, message, delay=.2,qos=2):
+def publish_cmd(client, topic, message, delay=.2,qos=0):
     """Convenience wrapper around MQTT's publish method.
 
     :message: should be one of the types defined in messages.py

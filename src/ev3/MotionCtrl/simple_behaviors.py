@@ -2,6 +2,7 @@ from MotionCtrl import low_level_ctrl as ctrl
 from MotionCtrl.ctrl_config import *
 import math
 
+"""
 def move_and_grab():
     lower_gripper_position(60)
     forward_position(600)
@@ -43,6 +44,8 @@ def move_to_and_grab_box():
     ctrl.open_gripper_abs_position()
     ctrl.wait_for(1)
     return (dist, angle)
+"""
+
 
 def check_if_in_gripper(distance):
     if distance < DISTANCE_LIMIT_CM:
@@ -60,6 +63,12 @@ def deg_to_rad(deg):
 
 def transform_img_to_robot_level(cam_dist, cam_angle):
     print("Beh: Object received in distance " + str(cam_dist) + " and angle " + str(cam_angle))
+
+    if abs(cam_dist-0.0) < 0.001:
+        return 0, cam_angle
+
+    return cam_dist, cam_angle
+
     cam_angle += 90
     x_cam = math.sin(deg_to_rad(cam_angle)) * cam_dist
     #x_robot = x_cam - CAM_ROBOT_DISTANCE
@@ -79,21 +88,29 @@ def transform_img_to_robot_level(cam_dist, cam_angle):
 def move_to(distance, angle):
     print("Beh: Message received distance " + str(distance) + " angle " + str(angle)) 
 
-    if abs(distance-0.0)<0.0000001 and abs(angle-0.0)<0.00000001:
-       return (0,0)
+    flag = ""
+    dist = 0.0
+    deg = 0.0
 
-    [distance, a] = transform_img_to_robot_level(distance, angle)  #rm return and uncomment
-    
-    angle -= CAMERA_ANGLE_OFFSET  
-    deg = ctrl.turn_left_deg(PERCENTAGE_TURN*angle)
+    if abs(distance-0.0)<0.0000001 and abs(angle-0.0)<0.00000001:
+       return (0,0, flag)
+
+    [d, a] = transform_img_to_robot_level(distance, angle)  #rm return and uncomment
+
+    flag = "moved"
+
+    a -= CAMERA_ANGLE_OFFSET  
+    if abs(a-0.0) > 0.000001:
+        deg = ctrl.turn_left_deg(PERCENTAGE_TURN*a)
     ctrl.wait_for(1)
     #ctrl.lift_gripper_abs_position()
     #ctrl.lower_gripper_reset_position()
     ctrl.wait_for(0.5)
-    dist = ctrl.forward_cm(ctrl.mm_to_cm(PERCENTAGE_MOVE*distance))
+    if abs(distance-0.0)>0.1:
+        dist = ctrl.forward_cm(ctrl.mm_to_cm(PERCENTAGE_MOVE*d))
     ctrl.wait_for(1)
     
-    return (dist, deg)
+    return (dist, deg, flag)
 
 
 def release_obj():
@@ -113,37 +130,23 @@ def reset_gripper():
 def move_to_box_and_release(distance, angle):
     dist = 0
     deg = 0
-
+    flag = ""
     if distance == 0 and angle == 0:
-        return 0,0
+        return 0,0, flag
 
     #calibrate for box depth
     distance -= BOX_DEPTH
-    print("distance "+str(distance))
     [d, a] = move_to(distance, angle)
     deg += a
-    print("deg "+str(deg))
     dist+=d
-    print("dist "+str(dist))
-    d = release_obj()
-    dist+=d
-    print("dist "+str(dist))
-    reset_gripper()
+    if distance < DISTANCE_LIMIT_BOX_CM:
+        flag = "release"
+        d = release_obj()
+        dist+=d
+        reset_gripper()
     print("MC: Travelled for " + str(dist) + " cm and " + str(deg) +  " degrees.")
-    return (dist, deg)
-"""
-    deg = ctrl.turn_right_deg(angle)
-    ctrl.wait_for(1)
-    ctrl.lift_gripper_abs_position()
-    ctrl.wait_for(0.5)
-    dist = ctrl.forward_cm(ctrl.mm_to_cm(distance))
-    ctrl.wait_for(1)
-    ctrl.open_gripper_abs_position()
-    ctrl.wait_for(1)
-    ctrl.backward_cm(20)
-    ctrl.wait_for(1)
-    ctrl.lower_gripper_reset_position()
-"""
+    return (dist, deg, flag)
+
 
 def grasp_brick():
     ctrl.lower_gripper_abs_position()
@@ -156,16 +159,20 @@ def grasp_brick():
 
 
 def move_and_grasp_object(distance, angle):
-    [d, a] = move_to(distance, angle)
-
+    flag = ""
     if distance == 0 and angle ==0:
-        return 0,0
+        return 0,0, flag
 
-    #grasp_brick()
+
+    [d, a] = move_to(distance, angle)
+    if distance < DISTANCE_LIMIT_CM:
+        flag = "grasped"
+        grasp_brick()
+
     print("MC: Travelled for " + str(dist)+ " cm and " + str(deg)+ " degrees.")
-    return (d,a)
+    return (d,a, flag)
 
-
+"""
 def move_towards_object( distance, angle):
     print("Beh: Moving towards object "+ str(distance) + " " + str(angle))
     offset = 10
@@ -187,4 +194,4 @@ def move_towards_object( distance, angle):
         deg +=a
         ctrl.lower_gripper_reset_position()        
     return (dist, deg)
-
+"""
