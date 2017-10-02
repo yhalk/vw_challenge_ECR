@@ -4,7 +4,6 @@ from MotionCtrl import actuators_simple as acts
 actuators = acts.actuators
 
 
-
 def mm_to_cm(mm):
     return (mm/10)
 
@@ -27,6 +26,12 @@ def turn_18deg_step(actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED
      actuator1.run_timed(time_sp=time_sp,speed_sp=speed_sp,stop_action='brake')
      actuator2.run_timed(time_sp=time_sp,speed_sp=-speed_sp,stop_action='brake')
 
+
+def turn_deg_position_direct(position,actuator1=actuators[0], actuator2=actuators[2], speed_sp=SPEED_TURN,time_sp=TIME_TURN):
+    #4.2 degrees with position 25
+    actuator1.run_direct(position_sp=position, speed_sp=speed_sp,stop_action='hold')
+    actuator2.run_direct(position_sp=-position, speed_sp=speed_sp,stop_action='hold')
+    return (position/TURN_RIGHT_TICKS_PER_DEG)
 
 def turn_deg_position(position,actuator1=actuators[0], actuator2=actuators[2], speed_sp=SPEED_TURN,time_sp=TIME_TURN):
     #4.2 degrees with position 25
@@ -69,7 +74,29 @@ def forward_1_step_time(actuator1=actuators[0],actuator2=actuators[2],speed_sp=S
 def backward_1_step_time(actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_BWD,time_sp=TIME_BWD):
     actuator1.run_timed(time_sp=time_sp,speed_sp=-speed_sp)
     actuator2.run_timed(time_sp=time_sp,speed_sp=-speed_sp)
+
+
+def backward_position_direct(position, actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_FWD,time_sp=TIME_FWD):
+    # 1 step is 10cm with position=360
+    actuator1.polarity = 'inversed'
+    actuator2.polarity = 'inversed'
+    actuator1.run_direct(position_sp=position,speed_sp=speed_sp,stop_action='hold')
+    actuator2.run_direct(position_sp=position,speed_sp=speed_sp,stop_action='hold')
+
+    actuator1.polarity = 'normal'
+    actuator1.polarity = 'normal'
+    return cm_to_mm(position/BACKWARD_TICKS_PER_CM)
+
     
+def forward_position_direct(position, actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_FWD,time_sp=TIME_FWD):
+    # 1 step is 10cm with position=360
+    actuator1.polarity = 'normal'
+    actuator2.polarity = 'normal'
+    actuator1.run_direct(position_sp=position,speed_sp=speed_sp,stop_action='hold')
+    actuator2.run_direct(position_sp=position,speed_sp=speed_sp,stop_action='hold')
+
+    return cm_to_mm(position/FORWARD_TICKS_PER_CM)
+
 
 def forward_position(position, actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_FWD,time_sp=TIME_FWD):
     # 1 step is 10cm with position=360
@@ -88,7 +115,6 @@ def backward_position(position, actuator1=actuators[0],actuator2=actuators[2],sp
     actuator1.run_to_rel_pos(position_sp=position,speed_sp=speed_sp,stop_action='hold')
     actuator2.run_to_rel_pos(position_sp=position,speed_sp=speed_sp,stop_action='hold')
     return cm_to_mm(position/BACKWARD_TICKS_PER_CM)
-
 
 
 
@@ -144,10 +170,8 @@ def close_gripper_abs_position(actuator=actuators[3],speed_sp=SPEED_GRIP_CLOSE,t
     if LOG_ON==1:
         print("MC: Gripper position before closing " + str(actuator.position))
 
-#    actuator.polarity = 'inversed'
     actuator.stop_action = 'hold'
     actuator.run_to_abs_pos(position_sp=GRIP_CLOSE_POS,speed_sp=speed_sp, stop_action='hold')
-#    actuator.polarity = 'normal'
     
     time.sleep(1)
     if LOG_ON==1:
@@ -281,73 +305,3 @@ def get_actuators_values():
     print("... Motor 2 "+str(actuators[2].position))
     print("... Gripper open/close "+str(actuators[3].position))
     print("... Gripper up/down "+str(actuators[1].position))
-
-"""
-# BEHAVIORS - TODO: go to a different file
-#############################################
-def move_and_grab(actuator1=actuators[0], actuator2=actuators[2], actuator3=actuators[3], actuator4=actuators[1]):
-    lower_gripper_position(60)
-    time.sleep(2)
-    forward_position(600)
-    time.sleep(2)
-    lower_gripper_position(30)
-    time.sleep(2)
-    close_gripper_full(5*100)
-    time.sleep(2)
-    lift_gripper_position(100)
-    time.sleep(2)
-    forward_position(300)
-    time.sleep(2)
-    open_gripper_full(3*100)
-    time.sleep(2)
-    backward_position(300)
-    time.sleep(2)
-
-def move_to_and_grab(actuator1=actuators[0], actuator2=actuators[2], actuator3=actuators[3], actuator4=actuators[1]):
-    time.sleep(2)
-    forward_position(300)
-    time.sleep(2)
-    lower_gripper_position(30)
-    time.sleep(2)
-    close_gripper_full(5*100)
-    time.sleep(2)
-    lift_gripper_position(100)
-    time.sleep(2)
-    #forward_1_step_position(actuator1,actuator2, 300)
-    #time.sleep(2)
-    backward_position(300)
-    time.sleep(2)
-    turn_right_deg(90)
-    time.sleep(2)
-    open_gripper_full(3*100)
-    time.sleep(2)
-
-
-def check_if_in_gripper(distance):
-    if distance < DISTANCE_LIMIT_CM:
-        return True
-    else:
-        return False
-
-def move_towards_object( distance, angle, actuator1=actuators[0], actuator2=actuators[2], actuator3=actuators[3], actuator4=actuators[1]):
-    offset = 10
-    percentage = 1.0
-    turn_right_deg(angle)
-    time.sleep(2)
-    if check_if_in_gripper(mm_to_cm(distance)):
-        print("MC: In gripper distance")
-        #forward_cm(actuator1, actuator2, mm_to_cm(distance)+offset)
-        move_to_and_grab()
-    else:
-        print("MC: move towards object "+ str(percentage*mm_to_cm(distance)))
-        forward_cm(percentage*mm_to_cm(distance))
-        move_to_and_grab()
-        lower_gripper_position(80)
-        open_gripper_full(100)
-        
-
-
-"""
-
-
-

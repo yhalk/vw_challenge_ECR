@@ -8,7 +8,7 @@ LARGE_MOTOR_D = "outD"
 MEDIUM_MOTOR  = "outC"
 
 topics_to_listen = ["vision"]
-qos_listen = [2]
+qos_listen = [0]
 topics_to_publish = ["odometry"]
-qos_pub = [2]
+qos_pub = [0]
 
