@@ -110,5 +110,5 @@ class OnBoardCamera(Sensor):
 
 
 #Create camera sensor object
-#camera = OnBoardCamera()
+camera = OnBoardCamera()
 

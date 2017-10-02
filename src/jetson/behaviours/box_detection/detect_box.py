@@ -9,7 +9,8 @@ def detect_box(params,image,client):
     if (boxes!=[]):
        #Get target box details. "class_name" attribute must contain word "box"
        target_box = [i for i in boxes if (i[0]==box_idx)][0]
-       publish_vision_info(client,topic="vision",info=target_box)  #check order of "info" contents, maybe extend target_box with None for UUID,class_name
+       print(target_box)
+       publish_vision_info(client,topic="vision",info=[target_box[0],target_box[1],-target_box[2]])  #check order of "info" contents, maybe extend target_box with None for UUID,class_name
     else:
        target_box = ["no_box",0,0]
        publish_vision_info(client,topic="vision",info=target_box)

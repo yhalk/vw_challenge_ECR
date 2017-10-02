@@ -23,6 +23,6 @@ def calculate_angle_and_distance(width, x1, x2, y1, y2):
     sensor_height = 314.2 # in mm
     #distance_between_robot_and_object = (51.525 * 123) / distance_between_points([x1,y1], [x2,y1])
     #approximate distance is width of the object times focal length divided by width of the image
-    distance_between_robot_and_object = 132 * 515.25 / distance_between_points([x1,y1], [x2,y1])
+    distance_between_robot_and_object = 132 * 450 / distance_between_points([x1,y1], [x2,y1])
     #distance_between_robot_and_object = distance_between_robot_and_object * 1.5
     return angle, distance_between_robot_and_object
