@@ -3,7 +3,8 @@ import time
 from MotionCtrl import actuators_simple as acts
 actuators = acts.actuators
 
-
+#actuators[0].duty_cycle_sp=50
+#actuators[2].duty_cycle_sp=50
 
 def mm_to_cm(mm):
     return (mm/10)
@@ -27,6 +28,12 @@ def turn_18deg_step(actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED
      actuator1.run_timed(time_sp=time_sp,speed_sp=speed_sp,stop_action='brake')
      actuator2.run_timed(time_sp=time_sp,speed_sp=-speed_sp,stop_action='brake')
 
+
+def turn_deg_position_direct(position,actuator1=actuators[0], actuator2=actuators[2], speed_sp=SPEED_TURN,time_sp=TIME_TURN):
+    #4.2 degrees with position 25
+    actuator1.run_direct(position_sp=position, speed_sp=speed_sp,stop_action='hold')
+    actuator2.run_direct(position_sp=-position, speed_sp=speed_sp,stop_action='hold')
+    return (position/TURN_RIGHT_TICKS_PER_DEG)
 
 def turn_deg_position(position,actuator1=actuators[0], actuator2=actuators[2], speed_sp=SPEED_TURN,time_sp=TIME_TURN):
     #4.2 degrees with position 25
@@ -69,7 +76,29 @@ def forward_1_step_time(actuator1=actuators[0],actuator2=actuators[2],speed_sp=S
 def backward_1_step_time(actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_BWD,time_sp=TIME_BWD):
     actuator1.run_timed(time_sp=time_sp,speed_sp=-speed_sp)
     actuator2.run_timed(time_sp=time_sp,speed_sp=-speed_sp)
+
+
+def backward_position_direct(position, actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_FWD,time_sp=TIME_FWD):
+    # 1 step is 10cm with position=360
+    actuator1.polarity = 'inversed'
+    actuator2.polarity = 'inversed'
+    actuator1.run_direct(position_sp=position,speed_sp=speed_sp,stop_action='hold')
+    actuator2.run_direct(position_sp=position,speed_sp=speed_sp,stop_action='hold')
+
+    actuator1.polarity = 'normal'
+    actuator1.polarity = 'normal'
+    return cm_to_mm(position/BACKWARD_TICKS_PER_CM)
+
     
+def forward_position_direct(position, actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_FWD,time_sp=TIME_FWD):
+    # 1 step is 10cm with position=360
+    actuator1.polarity = 'normal'
+    actuator2.polarity = 'normal'
+    actuator1.run_direct(position_sp=position,speed_sp=speed_sp,stop_action='hold')
+    actuator2.run_direct(position_sp=position,speed_sp=speed_sp,stop_action='hold')
+
+    return cm_to_mm(position/FORWARD_TICKS_PER_CM)
+
 
 def forward_position(position, actuator1=actuators[0],actuator2=actuators[2],speed_sp=SPEED_FWD,time_sp=TIME_FWD):
     # 1 step is 10cm with position=360
@@ -88,7 +117,6 @@ def backward_position(position, actuator1=actuators[0],actuator2=actuators[2],sp
     actuator1.run_to_rel_pos(position_sp=position,speed_sp=speed_sp,stop_action='hold')
     actuator2.run_to_rel_pos(position_sp=position,speed_sp=speed_sp,stop_action='hold')
     return cm_to_mm(position/BACKWARD_TICKS_PER_CM)
-
 
 
 

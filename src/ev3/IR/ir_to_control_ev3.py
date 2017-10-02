@@ -34,12 +34,15 @@ def motor_control(cmd):
         behavior.move_to_box_and_release(310, 15)
     elif (cmd==REMOTE_BLUE_UP):
         #ctrl.move_and_grab(actuators[0], actuators[2], actuators[3], actuators[1])
-        ctrl.forward_cm(50)#position_pid(10, 0, 0, 0)
+        ctrl.forward_cm(10)#position_pid(10, 0, 0, 0)
+        print("IR: Move forward command")
     elif (cmd==REMOTE_BLUE_DOWN):
-        ctrl.backward_cm(50)
+        ctrl.backward_cm(10)
+        print("IR: Move backward command")
     elif (cmd==REMOTE_RED_DOWN):
         #ctrl.turn_deg_position(actuators[0], actuators[2], 15)
-        ctrl.turn_right_deg(90)
+        ctrl.turn_right_deg(10)
+        print("IR: Turn!")
     elif (cmd==REMOTE_RED_UP_AND_BLUE_UP):
         ctrl.forward_position(100)
     elif (cmd==REMOTE_RED_DOWN_AND_BLUE_DOWN):

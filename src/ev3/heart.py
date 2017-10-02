@@ -47,15 +47,15 @@ while(1):
    kill = IR_controller()
    if kill:
       break
+   print(listening)
    if ("Vision" in list(listening.keys())):
       distance, angle, class_name = get_vision_attr(listening)   
       if (distance!=None and angle!=None and class_name!=None):
          if "box" in class_name and float(distance) <= 31:
-             dst_traveled,angle_turned = 5,6 #simple_behaviors.move_to_box_and_release(float(distance), float(angle))
+             dst_traveled,angle_turned = simple_behaviors.move_to_box_and_release(float(distance), float(angle))
          elif "object" in class_name and float(distance) <= 31:
-             dst_traveled,angle_turned = 3,4 #simple_behaviors.move_and_grasp_object(float(distance), float(angle))
+             dst_traveled,angle_turned = simple_behaviors.move_and_grasp_object(float(distance), float(angle))
          else:
-             print(distance,angle)
              dst_traveled,angle_turned = simple_behaviors.move_to(float(distance), float(angle))
              
          set_odometry_attr(dst_traveled,angle_turned)

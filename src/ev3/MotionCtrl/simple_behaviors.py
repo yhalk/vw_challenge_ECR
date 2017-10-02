@@ -62,30 +62,37 @@ def transform_img_to_robot_level(cam_dist, cam_angle):
     print("Beh: Object received in distance " + str(cam_dist) + " and angle " + str(cam_angle))
     cam_angle += 90
     x_cam = math.sin(deg_to_rad(cam_angle)) * cam_dist
-    x_robot = x_cam - CAM_ROBOT_DISTANCE
+    #x_robot = x_cam - CAM_ROBOT_DISTANCE
+    if cam_angle > 0:
+        x_robot = x_cam - CAM_ROBOT_DISTANCE
+    else:
+        x_robot = x_cam + CAM_ROBOT_DISTANCE
     y_robot = math.cos(deg_to_rad(cam_angle)) * cam_dist
     robot_dist = math.sqrt(x_robot*x_robot + y_robot*y_robot)
-    robot_angle = math.atan2(y_robot,x_robot)
-    print(".. and translated in distance " + str(robot_dist) + " and angle " + str(rad_to_deg(robot_angle)))
+    if (cam_dist <0):
+        robot_dist = -robot_dist
+    robot_angle = -math.atan2(y_robot,x_robot)
+    print("... and translated in distance " + str(robot_dist) + " and angle " + str(rad_to_deg(robot_angle)))
     return robot_dist, rad_to_deg(robot_angle)
 
 
 def move_to(distance, angle):
-    
+    print("Beh: Message received distance " + str(distance) + " angle " + str(angle)) 
+
     if abs(distance-0.0)<0.0000001 and abs(angle-0.0)<0.00000001:
        return (0,0)
 
-    return transform_img_to_robot_level(distance, angle)  #rm return and uncomment
-    """
+    [distance, a] = transform_img_to_robot_level(distance, angle)  #rm return and uncomment
+    
     angle -= CAMERA_ANGLE_OFFSET  
-    deg = ctrl.turn_left_deg(angle)
+    deg = ctrl.turn_left_deg(PERCENTAGE_TURN*angle)
     ctrl.wait_for(1)
     #ctrl.lift_gripper_abs_position()
-    ctrl.lower_gripper_reset_position()
+    #ctrl.lower_gripper_reset_position()
     ctrl.wait_for(0.5)
-    dist = ctrl.forward_cm(ctrl.mm_to_cm(distance))
+    dist = ctrl.forward_cm(ctrl.mm_to_cm(PERCENTAGE_MOVE*distance))
     ctrl.wait_for(1)
-    """
+    
     return (dist, deg)
 
 
@@ -107,17 +114,20 @@ def move_to_box_and_release(distance, angle):
     dist = 0
     deg = 0
 
+    if distance == 0 and angle == 0:
+        return 0,0
+
     #calibrate for box depth
     distance -= BOX_DEPTH
-    print("distance "+distance)
+    print("distance "+str(distance))
     [d, a] = move_to(distance, angle)
     deg += a
-    print("deg "+deg)
+    print("deg "+str(deg))
     dist+=d
-    print("dist "+dist)
+    print("dist "+str(dist))
     d = release_obj()
     dist+=d
-    print("dist "+dist)
+    print("dist "+str(dist))
     reset_gripper()
     print("MC: Travelled for " + str(dist) + " cm and " + str(deg) +  " degrees.")
     return (dist, deg)
@@ -147,7 +157,11 @@ def grasp_brick():
 
 def move_and_grasp_object(distance, angle):
     [d, a] = move_to(distance, angle)
-    grasp_brick()
+
+    if distance == 0 and angle ==0:
+        return 0,0
+
+    #grasp_brick()
     print("MC: Travelled for " + str(dist)+ " cm and " + str(deg)+ " degrees.")
     return (d,a)
 
