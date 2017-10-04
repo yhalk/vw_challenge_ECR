@@ -5,27 +5,18 @@ from ev3control.messages import *
 class VisualFeedback():
 
     def __init__(self):
-        self._distance = None
-        self._angle = None
+        self._distance_angle = None,None
         self._class_name = None
         self._uuid = None
 
-    def get_distance(self):
-        return self._distance
+    def get_distance_angle(self):
+        return self._distance_angle
 
-    def set_distance(self,value):
-        self._distance = value
+    def set_distance_angle(self,value):
+        self._distance_angle = value
 
-    distance = property(get_distance,set_distance,'distance')
+    distance_angle = property(get_distance_angle,set_distance_angle,'distance_angle')
 
-
-    def get_angle(self):
-        return self._angle
-
-    def set_angle(self,value):
-        self._angle = value
-
-    angle = property(get_angle,set_angle,'angle')
 
     def get_class_name(self):
         return self._class_name

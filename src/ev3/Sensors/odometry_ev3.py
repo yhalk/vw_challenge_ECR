@@ -1,30 +1,22 @@
 import ev3control.master as master
 from ev3control.messages import *
 
+
+
 class Odometry():
 
       def __init__(self):
-          self._dst_traveled = None
-          self._angle_turned = None
+          self._dst_traveled_angle_turned = None,None
           self._moved = None
           self._grasp = None
 
-      def get_dst_traveled(self):
-          return self._dst_traveled
+      def get_dst_traveled_angle_turned(self):
+          return self._dst_traveled_angle_turned
 
-      def set_dst_traveled(self,value):
-          self._dst_traveled = value
+      def set_dst_traveled_angle_turned(self,value):
+          self._dst_traveled_angle_turned = value
 
-      dst_traveled = property(get_dst_traveled,set_dst_traveled,'dst_traveled')
-
-
-      def get_angle_turned(self):
-          return self._angle_turned
-
-      def set_angle_turned(self,value):
-          self._angle_turned = value
-
-      angle_turned = property(get_angle_turned,set_angle_turned,'angle_turned')
+      dst_traveled_angle_turned = property(get_dst_traveled_angle_turned,set_dst_traveled_angle_turned,'dst_traveled_angle_turned')
 
 
       def get_moved(self):
