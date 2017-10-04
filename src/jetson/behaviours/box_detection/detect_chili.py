@@ -37,6 +37,7 @@ def get_box_distance(frame):
         y2 = marker_coor[2][1]
 
         angle, distance = calculate_angle_and_distance(width,x1,x2,y1,y2)
+        print("Angle " + str(angle) + " dist  " + str(distance)) 
         marker_distances.append([marker_id, distance, angle])
 
     return marker_distances

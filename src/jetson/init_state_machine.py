@@ -5,8 +5,15 @@ from behaviours.box_detection.detect_chili import get_box_distance
 from behaviours.box_detection.detect_box import detect_box
 import time 
 from Vision.vision_commands import grab_camera_image
+import subprocess
+import os
 
 state = "explore"
+
+
+def write_ssh_file_command():
+    cmd = "sshpass -p maker ssh robot@10.42.0.214 touch /home/robot/DLRC/vw_challenge_ECR/src/ev3/vision/vision_flag"
+    return cmd
 
 
 def move_to_explore(client,dst,angle,listening):    #DST, ANGLE VALUES FOR EXPLORATION ???
@@ -14,7 +21,9 @@ def move_to_explore(client,dst,angle,listening):    #DST, ANGLE VALUES FOR EXPLO
     publish_vision_info(client,topic="vision",info=["explore",dst,angle])
     while (getattr(listening['Odometer'],'moved')!="1"):
               print("explore read and sleep")
-              time.sleep(2)
+              time.sleep(1)
+    print("explore sleep")
+    time.sleep(10)
 
 
 def look_for_object(params,camera,predictor):
@@ -49,7 +58,7 @@ def go_to_object(object_class,dst,angle,client,listening):
     publish_vision_info(client,topic="vision",info=[object_class,dst,angle])
     while (getattr(listening['Odometer'],'moved')!="1"):
               print("go to object read and sleep")
-              time.sleep(2)
+              time.sleep(1)
     
     grasp = getattr(listening['Odometer'],'grasp')  #MAKE SURE TO WAIT UNITL UPDATED
     
@@ -89,7 +98,7 @@ def go_to_box(box,dst,angle,client,listening):
     publish_vision_info(client,topic="vision",info=[box,dst,angle])
     while (getattr(listening['Odometer'],'moved')!="1"):
               print("go to box read and sleep")
-              time.sleep(2)
+              time.sleep(1)
      
     grasp = getattr(listening['Odometer'],'grasp')   # MAKE SURE YOU WAIT UNTIL IT S UPDATED
  
@@ -98,13 +107,15 @@ def go_to_box(box,dst,angle,client,listening):
 
 def run_state_machine(obj,box_id,camera,predictor,client,listening,dst=0.0,angle=0.0,DST_EXPLORE=0.0,ANGLE_EXPLORE=0.0):
     global state
-    
+    #time.sleep(10)
     if state == "explore":
         object_seen,dst,angle,object_class = look_for_object(obj,camera,predictor)  
         if object_seen:
-            state = "locate_obj"
-        else: 
-            move_to_explore(client,dst=DST_EXPLORE,angle=ANGLE_EXPLORE,listening=listening)
+            cmd = write_ssh_file_command()
+            os.system(cmd)
+            state = "explore"
+        #else: 
+            #move_to_explore(client,dst=DST_EXPLORE,angle=ANGLE_EXPLORE,listening=listening)
     elif state == "locate_obj":
         object_grasped = go_to_object(obj,dst,angle,client,listening)  
         if object_grasped=="grasped":
