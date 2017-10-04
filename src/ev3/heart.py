@@ -14,6 +14,10 @@ import datetime
 from communication import comm_init, get_behaviours_and_params, publish_all
 from threading import Thread
 from MotionCtrl import simple_behaviors
+from MotionCtrl import low_level_ctrl as ctrl
+import os.path
+import os
+
 
 #Subscribe to topics for listening and publishing
 client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish, qos_pub=config.qos_pub, listening={}, log=0)
@@ -21,10 +25,17 @@ client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_liste
 
 def get_vision_attr(listening):
 
-    distance = getattr(listening["Vision"], "distance")
-    #print("DISTANCE " +str(distance))
-    angle = getattr(listening["Vision"], "angle")
-    #print("ANGLE " +str(angle))
+    distance_angle = getattr(listening["Vision"], "distance_angle")
+    #print("DISTANCE_ANGLE" +str(distance_angle))
+    if (type(distance_angle).__name__=='str'):
+       d = distance_angle.strip('(')
+       d2 = d.strip(')')
+       r = d2.split(',')
+       angle = r[1]
+       distance = r[0]
+    else:
+       angle = None
+       distance = None
     class_name = getattr(listening["Vision"], "class_name")
     #print("CLASS " +str(class_name))
 
@@ -33,8 +44,7 @@ def get_vision_attr(listening):
 
 def set_odometry_attr(dst,angle,grasp):
     odometer = publishable_names_dict["Odometer"]
-    setattr(odometer,"dst_traveled",dst)
-    setattr(odometer,"angle_turned",angle)
+    setattr(odometer,"dst_traveled_angle_turned",(dst,angle))
     setattr(odometer,"grasp",grasp)
     if (dst==None and angle==None):
        setattr(odometer,"moved",0)
@@ -45,6 +55,14 @@ def set_odometry_attr(dst,angle,grasp):
 
 counter = 0
 while(1):
+   if os.path.isfile('vision/vision_flag'):
+      #stop the motors here and wait for messages
+      print("break")
+      ctrl.stop_actuator(stop_action='hold')
+      os.remove('vision/vision_flag')
+   else:
+      print("not seen")
+
    print("EV3 work in progress..."+str(counter))
    kill = IR_controller()
    if kill:
@@ -70,49 +88,3 @@ while(1):
    
 client.disconnect()
 
-
-
-"""
-
-channel_prev = -1
-cmd_prev = -1
-#If IR return list is != [0,0,0,0]
-valid = 0
-#Values to transmit for data collection
-a,b,grip,lift,timestamp = -1,-1,-1,-1,-1
-
-
-
-was in loop:
-
-
-
-#Read IR controller input
-   (channel,cmd,valid) = get_IR_cmd(sensors_names_dict["IR_control"])
-   if (int(channel)!=2):
-      if (int(channel)!=3 and int(channel)!=-1):
-         a,b,lift,grip = ir_ctrl.ir_to_control(actuators_l,int(channel),int(cmd))
-         timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
-         data_collector.set_data(a,b,lift,grip,timestamp)
-         print("ffff "+repr(getattr(data_collector,'data')))
-      else:
-          print("ch3")
-          _,_,_,_ = ir_ctrl.ir_to_control(actuators_l,int(channel),int(cmd))
-   
-
-   time.sleep(1)
-   #Publish sensor readings  --- CHECK QUALITY OF SERVICE LEVEL FOR SENSOR VALUES
-   for sensor, property_names in items_to_publish.items():
-        for property_name in property_names:
-           if ((sensor=="IR_control") and (property_name=="cmd" or property_name=="channel") and (valid==1) and int(cmd)==9 and int(channel)==2):  #publish only for data collection atm
-              master.publish_cmd(client,topic,SetAttrMessage(sensor, property_name, str(cmd)))
-              master.publish_cmd(client,topic,SetAttrMessage(sensor, property_name, str(channel)))
-              print(repr(getattr(data_collector,'data')))
-              master.publish_cmd(client,topic_data,SetAttrMessage("data_collector","data",repr(data_collector.get_data())))
-           else:
-              pass
-    
-   #Get and set actuator properties
-   client.loop_read()   
-
-"""
