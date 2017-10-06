@@ -5,9 +5,9 @@ BROKER_PORT = 1883
 
 
 topics_to_listen = ["odometry"]
-qos_listen = [2]
+qos_listen = [0]
 topics_to_publish = ["vision"]
-qos_pub = [2]
+qos_pub = [0]
 
 #Have behaviours taking a dictionary of param names:values and decompose them internally
 behaviour_json = "behaviour.py"

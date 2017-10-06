@@ -152,7 +152,7 @@ def apply_regr_np(X, T):
 		print(e)
 		return X
 
-def non_max_suppression_fast(boxes, probs, overlap_thresh=0.9, max_boxes=300):
+def non_max_suppression_fast(boxes, probs, clust=None, overlap_thresh=0.9, max_boxes=300):
 	# code used from here: http://www.pyimagesearch.com/2015/02/16/faster-non-maximum-suppression-python/
 	# if there are no boxes, return an empty list
 	if len(boxes) == 0:
@@ -218,7 +218,12 @@ def non_max_suppression_fast(boxes, probs, overlap_thresh=0.9, max_boxes=300):
 	# return only the bounding boxes that were picked using the integer data type
 	boxes = boxes[pick].astype("int")
 	probs = probs[pick]
-	return boxes, probs
+	if clust is None:
+		return boxes, probs
+	else:
+		clust = clust[pick]
+		return boxes, probs, clust
+
 
 import time
 def rpn_to_roi(rpn_layer, regr_layer, C, dim_ordering, use_regr=True, max_boxes=300,overlap_thresh=0.9):

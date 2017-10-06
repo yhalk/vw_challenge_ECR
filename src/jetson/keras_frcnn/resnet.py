@@ -16,6 +16,10 @@ from keras import backend as K
 from keras_frcnn.RoiPoolingConv import RoiPoolingConv
 from keras_frcnn.FixedBatchNormalization import FixedBatchNormalization
 
+from acol.pooling import AveragePooling#, MaxPooling
+from acol.regularizers import activity_acol, activity_acol_null, activity_acol_for_dropout
+from acol.initializations import column_vstacked_nullnode
+
 def get_weight_path():
     if K.image_dim_ordering() == 'th':
         return 'resnet50_weights_th_dim_ordering_th_kernels_notop.h5'
@@ -244,5 +248,15 @@ def classifier(base_layers, input_rois, num_rois, nb_classes = 21, trainable=Fal
     out_class = TimeDistributed(Dense(nb_classes, activation='softmax', kernel_initializer='zero'), name='dense_class_{}'.format(nb_classes))(out)
     # note: no regression target for bg class
     out_regr = TimeDistributed(Dense(4 * (nb_classes-1), activation='linear', kernel_initializer='zero'), name='dense_regress_{}'.format(nb_classes))(out)
-    return [out_class, out_regr]
+    c1 = 3 #c_alpha
+    c2 = 1 #c_beta
+    c3 = 0
+    c4 = 0.000001 # c_F
+    balance_type = 2
+    AcolPooling = AveragePooling
+    # AcolPooling = MaxPooling
+    out_clust1 = Dense(2*nb_classes, activity_regularizer=activity_acol(c1, c2, c3, c4, balance_type), name='L-1')(out)
+    # out_clust = Dense(nb_classes, name='L-1')(out)
+    out_clust2 = AcolPooling(2, trainable=trainable, init=column_vstacked_nullnode, name='AcolPooling')(out_clust1)
+    return [out_class, out_regr, out_clust2]
 

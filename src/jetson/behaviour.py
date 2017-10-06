@@ -1,2 +1,2 @@
 {"sleep":"timing",
-"explore":"explore"}
+"spot_box":"detect_box"}

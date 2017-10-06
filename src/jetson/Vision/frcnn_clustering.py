@@ -20,12 +20,6 @@ import datetime
 
 import uuid
 from PIL import Image
-#sys.path.append("/home/nvidia/YAD2K_small")
-#sys.path.append("/home/nvidia/YAD2K_small/models")
-#from yad2k_4_robot import *
-#import yad2k_4_robot
-
-from utils import calc_angle, calculate_angle_and_distance
 
 class ObjectPredictor:
         #os.environ['CUDA_VISIBLE_DEVICES'] = ''
@@ -58,7 +52,7 @@ class ObjectPredictor:
 
                         # otherwise, the height is None
                 else:
-		        # calculate the ratio of the width and construct the
+            # calculate the ratio of the width and construct the
                         # dimensions
                         r = width / float(w)
                         dim = (width, int(h * r))
@@ -73,7 +67,7 @@ class ObjectPredictor:
             ang1 = np.arctan2(*p1[::-1])
             ang2 = np.arctan2(*p2[::-1])
             return np.rad2deg((ang1 - ang2) % (2 * np.pi))
-	
+  
         def distance(self, p0, p1):
             return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
@@ -91,7 +85,7 @@ class ObjectPredictor:
                         new_width = int(ratio * width)
                         new_height = int(img_min_side)
                 img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
-                return img, ratio	
+                return img, ratio 
 
 
         def format_img_channels(self, img, C):
@@ -105,13 +99,13 @@ class ObjectPredictor:
                 img = np.transpose(img, (2, 0, 1))
                 img = np.expand_dims(img, axis=0)
                 return img
-	
+  
         def format_img(self, img, C):
                 """ formats an image for model prediction based on config """
                 img, ratio = self.format_img_size(img, C)
                 img = self.format_img_channels(img, C)
                 return img, ratio
-	
+  
         # Method to transform the coordinates of the bounding box to its original size
         def get_real_coordinates(self, ratio, x1, y1, x2, y2):
 
@@ -119,10 +113,10 @@ class ObjectPredictor:
                 real_y1 = int(round(y1 // ratio))        
                 real_x2 = int(round(x2 // ratio))
                 real_y2 = int(round(y2 // ratio))
-	 
+   
                 return (real_x1, real_y1, real_x2 ,real_y2)
-	
-	
+  
+  
         def __init__(self):
           gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
 
@@ -191,6 +185,7 @@ class ObjectPredictor:
 
         #for idx, img_name in enumerate(sorted(os.listdir(img_path))):
         def detect_known_objects(self, img):
+                #img = (img - img.mean()) / (img.std() + 1e-8)
                 print ("HELLLOOOOOO")
                 #img = self.image_resize(img, height=int(img.shape[0]/3.0))
                 #img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
@@ -202,8 +197,8 @@ class ObjectPredictor:
                 
                 # get the feature maps and output from the RPN
                 [Y1, Y2, F] = self.model_rpn.predict(X)
-	        #print Y1, Y2, F
-		
+          #print Y1, Y2, F
+    
                 a = datetime.datetime.now()
                 R = roi_helpers.rpn_to_roi(Y1, Y2, self.C, K.image_dim_ordering(), overlap_thresh=0.7)
                 b = datetime.datetime.now()
@@ -212,13 +207,14 @@ class ObjectPredictor:
                 #print R
                 #for i in R:
                 #    cv2.rectangle(img,(i[0],i[1]),(i[2],i[3]),(0,255,0),3)
-	        # convert from (x1,y1,x2,y2) to (x,y,w,h)
+          # convert from (x1,y1,x2,y2) to (x,y,w,h)
                 R[:, 2] -= R[:, 0]    
                 R[:, 3] -= R[:, 1]
-	
+  
                 # apply the spatial pyramid pooling to the proposed regions
                 bboxes = {}
                 probs = {}
+                clust_probs = {}
                 for idx, jk in enumerate(range(R.shape[0]//self.C.num_rois + 1)):                
                         ROIs = np.expand_dims(R[self.C.num_rois*jk:self.C.num_rois*(jk+1), :], axis=0)
                         if ROIs.shape[1] == 0:
@@ -249,10 +245,11 @@ class ObjectPredictor:
                                 if cls_name not in bboxes: 
                                         bboxes[cls_name] = []
                                         probs[cls_name] = []
+                                        clust_probs[cls_name] = []
                                 (x, y, w, h) = ROIs[0, ii, :]
-	                        #print x, y, w, h
+                          #print x, y, w, h
                                 cls_num = np.argmax(P_cls[0, ii, :])
-	                        #print "something", cls_num
+                          #print "something", cls_num
                                 try:
                                         (tx, ty, tw, th) = P_regr[0, ii, 4*cls_num:4*(cls_num+1)]
                                         tx /= self.C.classifier_regr_std[0]
@@ -265,6 +262,7 @@ class ObjectPredictor:
                                         pass
                                 bboxes[cls_name].append([self.C.rpn_stride*x, self.C.rpn_stride*y, self.C.rpn_stride*(x+w), self.C.rpn_stride*(y+h)])
                                 probs[cls_name].append(np.max(P_cls[0, ii, :]))
+                                clust_probs[cls_name].append(np.max(P_clust[0, ii, :]))
                
                 
 
@@ -275,7 +273,7 @@ class ObjectPredictor:
                 for key in bboxes:
                     bbox = np.array(bboxes[key])
     
-                    new_boxes, new_probs = roi_helpers.non_max_suppression_fast(bbox, np.array(probs[key]), overlap_thresh=0.5)
+                    new_boxes, new_probs, new_clust_probs = roi_helpers.non_max_suppression_fast(bbox, np.array(probs[key]), clust=np.array(clust_probs[key]), overlap_thresh=0.5)
                     for jk in range(new_boxes.shape[0]):
                         (x1, y1, x2, y2) = new_boxes[jk,:]
     
@@ -294,21 +292,20 @@ class ObjectPredictor:
                         #cv2.putText(img, textLabel, textOrg, cv2.FONT_HERSHEY_DUPLEX, 0.3, (0, 0, 0), 1)
                         height, width, channels = img.shape
                         #FOV horizontal = 62 degrees   (from 90 on right to 33 on left)
-                        angle_between_robot_centre_and_detected_object = self.angle_between((real_x1+self.distance([real_x1,real_y1],[real_x2,real_y1])/2.0,(real_y1+self.distance([real_x1, real_y1],[real_x1,real_y2])/2.0)), (width/2.0,0)) - 52.0
-                        angle_between_robot_centre_and_detected_object = -angle_between_robot_centre_and_detected_object
-                        angle_between_robot_centre_and_detected_object = calc_angle([int((real_x1 + real_x2)/2.0),int((real_y1 + real_y2)/2.0)])
-                        angle, distance = calculate_angle_and_distance(img, real_x1, real_x2, real_y1, real_y2, obj_width=16)
-                        angle_between_robot_centre_and_detected_object = angle
+                        angle_between_robot_centre_and_detected_object = (self.angle_between((real_x1-10.0+self.distance([real_x1-10.0,real_y1],[real_x2-10.0,real_y1])/2.0,(real_y1+self.distance([real_x1-10.0, real_y1],[real_x1-10.0,real_y2])/2.0)), (width/2.0,0)) - 52.0)*1.5
                         focal_length_mm = 1.0
                         average_real_object_height_mm = 1.0
                         image_height_px = height
                         object_height_px = self.distance([real_x1,real_y1], [real_x1,real_y2])
                         sensor_height_mm = 314.2
-                        distance_between_robot_centre_and_detected_object = (15.0/((min(self.distance([real_x1, real_y1], [real_x2, real_y1]), self.distance([real_x1, real_y1], [real_x1, real_y2]))/max(self.distance([real_x1, real_y1], [real_x2, real_y1]), self.distance([real_x1, real_y1], [real_x1, real_y2])))) * 123) / self.distance([real_x1,real_y1], [real_x2,real_y1])
-                        distance_between_robot_centre_and_detected_object = distance_between_robot_centre_and_detected_object * 5.0
-                        distance_between_robot_centre_and_detected_object = distance
-                        detected_objects.append((key, "", real_x1, real_y1, real_x2, real_y2, distance_between_robot_centre_and_detected_object, angle_between_robot_centre_and_detected_object))
+                        distance_between_robot_centre_and_detected_object = (30.0 * 84.0) / float(max(self.distance([real_x1*10.0,real_y1*10.0], [real_x2*10.0,real_y1*10.0]),self.distance([real_x1*10.0,real_y1*10.0], [real_x1*10.0,real_y2*10.0])))
+                        distance_between_robot_centre_and_detected_object = distance_between_robot_centre_and_detected_object * 20.0
+                        
+                        if (real_y2 > 10 and real_y2 < 90 and self.distance([real_x1,real_y1],[real_x2,real_y1])*self.distance([real_x1,real_y1],[real_x1,real_y2]) < height*width/50.0):
+                            detected_objects.append((key, "", real_x1, real_y1, real_x2, real_y2, distance_between_robot_centre_and_detected_object, angle_between_robot_centre_and_detected_object, new_clust_probs))
 
+                        if key!=None and new_clust_probs!=None:
+                           print("Object class__"+key+"  cluster: "+str(new_clust_probs[0]))
                 
                 print ("detected objects", len(detected_objects))
                 temporary_memory = []
@@ -326,20 +323,19 @@ class ObjectPredictor:
                             continue
 
                     if tracking_uuid != None:
-                        temporary_memory.append((self.KNOWN_OBJECTS[int(image_item[0])], tracking_uuid, image_item[2],image_item[3], image_item[4],image_item[5], image_item[6], image_item[7]))
+                        temporary_memory.append((self.KNOWN_OBJECTS[int(image_item[0])], tracking_uuid, image_item[2],image_item[3], image_item[4],image_item[5], image_item[6], image_item[7], image_item[8]))
                     else:
-                        temporary_memory.append((self.KNOWN_OBJECTS[int(image_item[0])], uuid.uuid1(), image_item[2],image_item[3], image_item[4],image_item[5], image_item[6], image_item[7]))
+                        temporary_memory.append((self.KNOWN_OBJECTS[int(image_item[0])], uuid.uuid1(), image_item[2],image_item[3], image_item[4],image_item[5], image_item[6], image_item[7], image_item[8]))
                     #print ("temp memory items", len(temporary_memory))
-                    
                     if self.show_image:
                         for item in temporary_memory:
                             cv2.rectangle(img,(item[2], item[3]), (item[4], item[5]), (0, 0, 0),5)
                             textLabel = '{}: {}'.format(item[0], item[1])
                             (retval,baseLine) = cv2.getTextSize(textLabel,cv2.FONT_HERSHEY_COMPLEX,1,1)
                             textOrg = (image_item[2]-20, image_item[3]-20)
-                            cv2.rectangle(img, (textOrg[0] - 5, textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (0, 0, 0), 2)
-                            cv2.rectangle(img, (textOrg[0] -5,textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (255, 255, 255), -1)
-                            cv2.putText(img, textLabel, textOrg, cv2.FONT_HERSHEY_DUPLEX, 0.3, (0, 0, 0), 1)
+                            #cv2.rectangle(img, (textOrg[0] - 5, textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (0, 0, 0), 2)
+                            #cv2.rectangle(img, (textOrg[0] -5,textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] +5, textOrg[1]-retval[1] +5), (255, 255, 255), -1)
+                            #cv2.putText(img, textLabel, textOrg, cv2.FONT_HERSHEY_DUPLEX, 0.3, (0, 0, 0), 1)
                              
                 self.SHORT_TERM_MEMORY = temporary_memory
                 if self.show_image:
@@ -353,3 +349,22 @@ class ObjectPredictor:
 
                 return self.SHORT_TERM_MEMORY
                 
+                
+if __name__=='__main__':
+    # cap = cv2.VideoCapture(0)
+    # ret, frame = cap.read()
+    images = ['images/0.png','images/1.png','images/2.png','images/3.png','images/4.png','images/5.png','images/6.png','images/7.png','images/8.png','images/9.png','images/10.png','images/11.png','images/12.png','images/13.png','images/14.png','images/1_0.png','images/1_1.png','images/1_2.png','images/1_3.png','images/1_4.png','images/1_5.png']
+    predictor = ObjectPredictor()
+
+    for image in images:
+      print(image)
+      frame = cv2.imread(image)
+      
+      
+      # while ret:
+      objects,clust_probs, probs = predictor.detect_known_objects(frame)
+      print(clust_probs)
+      print(probs)
+      print(objects)
+
+    

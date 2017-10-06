@@ -6,27 +6,18 @@ from ev3control.messages import *
 class VisualFeedback():
 
     def __init__(self):
-        self._distance = None
-        self._angle = None
+        self._distance_angle = None,None
         self._class_name = None
         self._uuid = None
 
-    def get_distance(self):
-        return self._distance
+    def get_distance_angle(self):
+        return self._distance_angle
 
-    def set_distance(self,value):
-        self._distance = value
+    def set_distance_angle(self,value):
+        self._distance_angle = value
 
-    distance = property(get_distance,set_distance,'distance')
+    distance_angle = property(get_distance_angle,set_distance_angle,'distance_angle')
 
-
-    def get_angle(self):
-        return self._angle
-
-    def set_angle(self,value):
-        self._angle = value
-
-    angle = property(get_angle,set_angle,'angle')
 
     def get_class_name(self):
         return self._class_name
@@ -44,16 +35,17 @@ class VisualFeedback():
         self._uuid = value
 
     uuid = property(get_uuid,set_uuid,'uuid')
-
     """
+   
 
 
 def grab_camera_image(camera_sensor):
-
+    
+    camera_sensor.clean_buf()    
     return camera_sensor.read()['onBoardCamera']
 
 
-def addVisionDevices(client,topic,qos=2):
+def addVisionDevices(client,topic,qos=0):
     
     return master.publish_cmd(client, topic, AddDeviceMessage('Vision', "VisualFeedback()"),delay=1,qos=qos)
 
@@ -64,11 +56,11 @@ def get_bbox(key_tuple):
 
 def get_distance(key_tuple):
 
-    return key_tuple[2]
+    return key_tuple[6]
 
 def get_angle(key_tuple):
 
-    return key_tuple[3]
+    return key_tuple[7]
 
 def get_class_name(key_tuple):
 
@@ -78,24 +70,27 @@ def get_class_name(key_tuple):
 def analyse_image(predictor,img):
 
     ret_val = predictor.detect_known_objects(img)
+    print(ret_val)
     info = []
     for i in range(len(ret_val)):
-        class_name = "object_"+get_class_name(ret_val[i])
+        class_name = get_class_name(ret_val[i])
         bbox = get_bbox(ret_val[i]) 
         distance = get_distance(ret_val[i])
         angle = get_angle(ret_val[i])
-        #Add bbox??
+        #Add bbox?
         info.append((class_name,distance,angle))
-
+        print(info)
+    print(info)
     return info
  
 
+
 def publish_vision_info(client,topic,info):
 #Use same device name as in vision_commands.py
-    mid1 = master.publish_cmd(client,topic, SetAttrMessage('Vision','class_name',repr(info[0])),qos=2)  
-    mid2 = master.publish_cmd(client,topic, SetAttrMessage('Vision','distance',repr(info[1])),qos=2) #do we care about quality of service here??? probably not,want speed
-    mid3 = master.publish_cmd(client,topic, SetAttrMessage('Vision','angle',repr(info[2])),qos=2)
-    return mid1,mid2,mid3
+    mid1 = master.publish_cmd(client,topic, SetAttrMessage('Vision','class_name',repr(info[0])),qos=0)  
+    mid2 = master.publish_cmd(client,topic, SetAttrMessage('Vision','distance_angle',repr((info[1],info[2]))),qos=0) #do we care about quality of service here??? probably not,want speed
+    return mid1,mid2
+
 
 def save_image(img_name,img,info):
 
