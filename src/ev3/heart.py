@@ -23,6 +23,9 @@ import os
 client,listening = comm_init(topics_to_listen=config.topics_to_listen, qos_listen=config.qos_listen, topics_to_publish=config.topics_to_publish, qos_pub=config.qos_pub, listening={}, log=0)
 
 
+def reset_position():
+    ctrl.reset_position()
+
 def get_vision_attr(listening):
 
     distance_angle = getattr(listening["Vision"], "distance_angle")
@@ -46,6 +49,7 @@ def set_odometry_attr(dst,angle,grasp):
     odometer = publishable_names_dict["Odometer"]
     setattr(odometer,"dst_traveled_angle_turned",(dst,angle))
     setattr(odometer,"grasp",grasp)
+    print("GRASP " + grasp)
     if (dst==None and angle==None):
        setattr(odometer,"moved",0)
     elif (abs(dst-0.0)>=-0.00000001):
@@ -54,6 +58,9 @@ def set_odometry_attr(dst,angle,grasp):
 
 
 counter = 0
+prev_dist = 0.0
+prev_angle = 0.0
+reset_position()
 while(1):
    if os.path.isfile('vision/vision_flag'):
       #stop the motors here and wait for messages
@@ -74,12 +81,34 @@ while(1):
       print(distance, angle, class_name)
       if (distance!=None and angle!=None):
          if "box" in class_name:
-             dst_traveled,angle_turned,grasp = simple_behaviors.move_to_box_and_release(float(distance), float(angle))
+             print("Heart: GO TO BOX!")
+             if (abs(prev_dist - float(distance)) > 0.0001 and abs(prev_angle - float(angle)) > 0.0001) :
+                 prev_dist = float(distance)
+                 prev_angle = float(angle)
+                 dst_traveled,angle_turned,grasp = simple_behaviors.move_to_box_and_release(float(distance), float(angle))
+             else:
+                 dst_traveled,angle_turned,grasp = simple_behaviors.move_to(0.0, 0.0)
+                 
          elif "object" in class_name:
-             dst_traveled,angle_turned,grasp = simple_behaviors.move_and_grasp_object(float(distance), float(angle))
+             print("Heart: GO TO OBJECT!")
+             if (abs(prev_dist - float(distance)) > 0.0001 and abs(prev_angle - float(angle)) > 0.0001) :
+                 prev_dist = float(distance)
+                 prev_angle = float(angle)
+                 dst_traveled,angle_turned,grasp = simple_behaviors.move_and_grasp_object(float(distance), float(angle))
+             else:
+                 dst_traveled,angle_turned,grasp = simple_behaviors.move_to(0.0, 0.0)
+         elif "explore" in class_name :
+             print("Heart: EXPLORE!")
+             dst_traveled,angle_turned,grasp = simple_behaviors.move_to(float(distance), float(angle)) 
          else:
-             dst_traveled,angle_turned,grasp = simple_behaviors.move_to(float(distance), float(angle))
-             
+             print("Heart: JUST MOVE!")
+             if (abs(prev_dist - float(distance)) > 0.0001 and abs(prev_angle - float(angle)) > 0.0001) :
+                 prev_dist = float(distance)
+                 prev_angle = float(angle)
+                 dst_traveled,angle_turned,grasp = simple_behaviors.move_to(float(distance), float(angle))
+             else:
+                 dst_traveled,angle_turned,grasp = simple_behaviors.move_to(0.0, 0.0)
+         print("Odometry attr " + str(dst_traveled) + " " + str(angle_turned) + " " + grasp)
          set_odometry_attr(dst_traveled,angle_turned,grasp)
 
    publish_all(client,config.topics_to_publish)   

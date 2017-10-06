@@ -18,6 +18,10 @@ def stop_actuator(stop_action):
     for actuator in actuators:
         actuator.stop(stop_action=stop_action)
 
+def reset_position():
+    lower_gripper_reset_position()
+    open_gripper_abs_position()
+
 #moving motors A,D
 ## ROTATION
 ###############################################

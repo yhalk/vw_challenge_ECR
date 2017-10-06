@@ -2,53 +2,9 @@ from MotionCtrl import low_level_ctrl as ctrl
 from MotionCtrl.ctrl_config import *
 import math
 
-"""
-def move_and_grab():
-    lower_gripper_position(60)
-    forward_position(600)
-    lower_gripper_position(30)
-    close_gripper_full(5*100)
-    lift_gripper_position(100)
-    forward_position(300)
-    open_gripper_full(3*100)
-    backward_position(300)
-
-def move_to_and_grab():
-    forward_position(300)
-    lower_gripper_position(30)
-    close_gripper_full(5*100)
-    lift_gripper_position(100)
-    #forward_1_step_position(actuator1,actuator2, 300)
-    #time.sleep(2)
-    backward_position(300)
-    turn_right_deg(90)
-    open_gripper_full(3*100)
-
-def move_to_and_grab_box():
-    dist = 0
-    angle = 0
-    ctrl.open_gripper_abs_position()
-    ctrl.wait_for(1)
-    ctrl.lower_gripper_abs_position()
-    ctrl.wait_for(1)
-    dist += ctrl.forward_cm(10)
-    ctrl.wait_for(1)
-    ctrl.close_gripper_abs_position()
-    ctrl.wait_for(1)
-    ctrl.lift_gripper_abs_position()
-    ctrl.wait_for(1)
-    dist += ctrl.backward_cm(10)
-    ctrl.wait_for(1)
-    angle += ctrl.turn_right_deg(90)
-    ctrl.wait_for(1)
-    ctrl.open_gripper_abs_position()
-    ctrl.wait_for(1)
-    return (dist, angle)
-"""
-
 
 def check_if_in_gripper(distance):
-    if distance < DISTANCE_LIMIT_CM:
+    if distance < DISTANCE_LIMIT_MM:
         return True
     else:
         return False
@@ -94,7 +50,8 @@ def move_to(distance, angle):
 
     if abs(distance-0.0)<0.0000001 and abs(angle-0.0)<0.00000001:
        return (0,0, flag)
-
+    if abs(angle) < 10:
+        angle = 0
     [d, a] = transform_img_to_robot_level(distance, angle)  #rm return and uncomment
 
     flag = "moved"
@@ -136,16 +93,18 @@ def move_to_box_and_release(distance, angle):
 
     #calibrate for box depth
     distance -= BOX_DEPTH
-    [d, a] = move_to(distance, angle)
-    deg += a
-    dist+=d
-    if distance < DISTANCE_LIMIT_BOX_CM:
+    if distance < DISTANCE_LIMIT_BOX_MM:
         flag = "release"
         d = release_obj()
+        [d,a,f] = move_to(distance, angle)
         dist+=d
         reset_gripper()
+    else:    
+        [d, a, f] = move_to((distance), angle)
+        deg += a
+        dist+=d
     print("MC: Travelled for " + str(dist) + " cm and " + str(deg) +  " degrees.")
-    return (dist, deg, flag)
+    return (ctrl.cm_to_mm(dist), deg, flag)
 
 
 def grasp_brick():
@@ -153,7 +112,7 @@ def grasp_brick():
     ctrl.wait_for(1)
     ctrl.close_gripper_abs_position()
     ctrl.wait_for(1)
-    ctrl.lift_gripper_abs_position()
+    ctrl.lower_gripper_reset_position()
     ctrl.wait_for(1)
 
 
@@ -162,15 +121,19 @@ def move_and_grasp_object(distance, angle):
     flag = ""
     if distance == 0 and angle ==0:
         return 0,0, flag
+    ctrl.reset_position()
 
-
-    [d, a] = move_to(distance, angle)
-    if distance < DISTANCE_LIMIT_CM:
+    if distance < DISTANCE_LIMIT_MM:
+        [d, a, f] = move_to(distance, angle)
+        print("BEH: I grasped the object! Oh yeah! ")
         flag = "grasped"
         grasp_brick()
+    else:
+        [d, a, f] = move_to((distance), angle)
+        
 
-    print("MC: Travelled for " + str(dist)+ " cm and " + str(deg)+ " degrees.")
-    return (d,a, flag)
+    print("MC: Travelled for " + str(d)+ " cm and " + str(a)+ " degrees.")
+    return (ctrl.cm_to_mm(d),a, flag)
 
 """
 def move_towards_object( distance, angle):
