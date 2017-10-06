@@ -98,11 +98,14 @@ class IMU(Sensor):
 class OnBoardCamera(Sensor):
     def __init__(self):
         self.name = 'onBoardCamera'
-        self.cap = cv2.VideoCapture("nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)(640), height=(int)(480),format=(string)I420, framerate=(fraction)2/1 ! nvvidconv flip-method=0 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink")
+        self.cap = cv2.VideoCapture("nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)160, height=(int)120, format=(string)I420, framerate=(fraction)30/1 ! nvvidconv flip-method=2 ! video/x-raw, format=(string)I420 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink")
+        #self.cap = cv2.VideoCapture("nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)(160), height=(int)(120),format=(string)I420, framerate=(fraction)2/1 ! nvvidconv flip-method=0 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink")
 
     def read(self):
         if self.cap.isOpened():
             ret_val, frame = self.cap.read();
+            frame = cv2.flip(frame,0)
+            frame = cv2.flip(frame,1)
         else:
             raise ValueError('Camera not opened. Sorry this message is not really helpful, blame openCV :-) ')
         return {'onBoardCamera':frame}

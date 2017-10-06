@@ -7,7 +7,7 @@ import config
 import ev3control.slave as slave
 import IR.IR_control as remoteControl 
 import Sensors.sensors_simple as sensors  
-import Vision.frcnn as frcnn
+import Vision.frcnn_clustering as frcnn
 import datetime 
 from Vision.vision_commands import *
 from communication import comm_init,get_behaviours_and_params
@@ -41,8 +41,8 @@ while(1):
        obj = params["stateM"]["object_class"]
        box_id = params["stateM"]["box_id"]
        dst,angle = run_state_machine(obj,box_id,camera_sensor,predictor,client,listening,dst,angle,DST_EXPLORE,ANGLE_EXPLORE)
-       print("brain")
-       print(dst,angle)
+       #print("brain")
+       #print(dst,angle)
        """
        behaviours,params = get_behaviours_and_params(config.behaviour_json, config.params_json)
        if behaviours!={}:

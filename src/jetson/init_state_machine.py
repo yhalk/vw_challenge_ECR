@@ -9,7 +9,8 @@ import subprocess
 import os
 
 state = "explore"
-
+prev_dist = 0.0
+prev_angle = 0.0
 
 def write_ssh_file_command():
     cmd = "sshpass -p maker ssh robot@10.42.0.214 touch /home/robot/DLRC/vw_challenge_ECR/src/ev3/vision/vision_flag"
@@ -17,23 +18,25 @@ def write_ssh_file_command():
 
 
 def move_to_explore(client,dst,angle,listening):    #DST, ANGLE VALUES FOR EXPLORATION ???
-    print(dst,angle)
+    #print(dst,angle)
     publish_vision_info(client,topic="vision",info=["explore",dst,angle])
+    print("STATE_MACHINE: explore message " + str(dst) + " " + str(angle))	
     while (getattr(listening['Odometer'],'moved')!="1"):
               print("explore read and sleep")
               time.sleep(1)
     print("explore sleep")
-    time.sleep(10)
+    time.sleep(5)
 
 
-def look_for_object(params,camera,predictor):
+def look_for_object(client, params,camera,predictor):
     # read from vision for new object results
     # if seen return 1 [new dist, angle]
     # else message for turning around and moving forward
     """
       return class,dst,angle but NO PUBLISH
     """
-    print("look object")
+    print("STATE_MACHINE: look object")
+    publish_vision_info(client,topic="vision",info=["wait",0,0])
     image = grab_camera_image(camera)
     object_class,dst,angle = detect_object(params,image,predictor)
     print(object_class,dst,angle)
@@ -54,18 +57,20 @@ def go_to_object(object_class,dst,angle,client,listening):
        CHECK if robot close enough to grasp      
 
     """
-    print("go object")
-    publish_vision_info(client,topic="vision",info=[object_class,dst,angle])
+    print("STATE_MACHINE:go object")
+    publish_vision_info(client,topic="vision",info=[(object_class+str("_object")),dst,angle])
+    print("STATE_MACHINE: object message " + str(object_class) + " "  + str(dst) + " " + str(angle))
     while (getattr(listening['Odometer'],'moved')!="1"):
               print("go to object read and sleep")
-              time.sleep(1)
+              time.sleep(3)
     
     grasp = getattr(listening['Odometer'],'grasp')  #MAKE SURE TO WAIT UNITL UPDATED
-    
+    print("STATE_MACHINE:grasp " + grasp )
+    time.sleep(10)
     return grasp
 
 
-def look_for_box(params,camera):
+def look_for_box(client, params,camera):
     # read from vision for new object results
     # if seen return 1 [new dist, angle]
     # else message for turning around and moving forward
@@ -74,7 +79,8 @@ def look_for_box(params,camera):
        NO PUBLISH
 
     """
-    print("look box")
+    print("STATE_MACHINE: look box")
+    publish_vision_info(client,topic="vision",info=["wait",0,0])
     image = grab_camera_image(camera)
     box_spot,dst,angle = detect_box(params,image)    ##WHICH BOX DO WE GO TO?? - ADD CLUSTERING
     if box_spot=="no_box":
@@ -94,14 +100,15 @@ def go_to_box(box,dst,angle,client,listening):
        CHECK if robot close enough to grasp      
 
     """
-    print("go box")
-    publish_vision_info(client,topic="vision",info=[box,dst,angle])
+    print("STATE_MACHINE: go box")
+    publish_vision_info(client,topic="vision",info=[(str("box_") + box),dst,angle])
+    print("STATE_MACHINE: box message " + str(box) + " "  + str(dst) + " " + str(angle))
     while (getattr(listening['Odometer'],'moved')!="1"):
               print("go to box read and sleep")
               time.sleep(1)
      
     grasp = getattr(listening['Odometer'],'grasp')   # MAKE SURE YOU WAIT UNTIL IT S UPDATED
- 
+    print("STATE_MACHINE: grasp " + grasp)
     return grasp
 
 
@@ -109,13 +116,13 @@ def run_state_machine(obj,box_id,camera,predictor,client,listening,dst=0.0,angle
     global state
     #time.sleep(10)
     if state == "explore":
-        object_seen,dst,angle,object_class = look_for_object(obj,camera,predictor)  
+        object_seen,dst,angle,object_class = look_for_object(client, obj,camera,predictor)  
         if object_seen:
             cmd = write_ssh_file_command()
             os.system(cmd)
-            state = "explore"
-        #else: 
-            #move_to_explore(client,dst=DST_EXPLORE,angle=ANGLE_EXPLORE,listening=listening)
+            state = "locate_obj"
+        else: 
+            move_to_explore(client,dst=DST_EXPLORE,angle=ANGLE_EXPLORE,listening=listening)
     elif state == "locate_obj":
         object_grasped = go_to_object(obj,dst,angle,client,listening)  
         if object_grasped=="grasped":
@@ -123,7 +130,7 @@ def run_state_machine(obj,box_id,camera,predictor,client,listening,dst=0.0,angle
         else:
             state = "explore"
     elif state == "locate_box":
-        box_seen,dst,angle,box_ident = look_for_box(box_id,camera)
+        box_seen,dst,angle,box_ident = look_for_box(client, box_id,camera)
         if box_seen:
             state = "go_to_box"
         else:
@@ -135,5 +142,5 @@ def run_state_machine(obj,box_id,camera,predictor,client,listening,dst=0.0,angle
         else:
             state = "locate_box"
     print("state machine")
-    print(dst,angle)
+    #print(dst,angle)
     return dst,angle 
